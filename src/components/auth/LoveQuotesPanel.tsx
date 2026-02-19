@@ -22,7 +22,6 @@ const LOVE_QUOTES = [
   'The best thing to hold onto in life is each other.',
   'In you, I found the love of my life and my closest, truest friend.',
   'I love you not because of who you are, but because of who I am when I am with you.',
-  'A successful marriage requires falling in love many times, always with the same person.',
   'You know you\'re in love when you can\'t fall asleep because reality is finally better than your dreams.',
   'Love is when the other person\'s happiness is more important than your own.',
   'Grow old with me, the best is yet to be.',
