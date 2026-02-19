@@ -23,7 +23,9 @@ function formatTime(iso: string) {
 }
 
 export function MessageItem({ message, profile, isOwn }: Props) {
-  const name = profile?.display_name ?? profile?.username ?? 'Unknown';
+  const name = isOwn
+    ? (profile?.display_name ?? profile?.username ?? 'You')
+    : (profile?.display_name ?? profile?.username ?? 'Chat');
 
   return (
     <div

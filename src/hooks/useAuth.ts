@@ -68,8 +68,14 @@ export function useAuth() {
   };
 
   const signOut = async () => {
-    clearStoredJwt();
-    setUser(null);
+    try {
+      await supabase.rpc('clear_last_seen');
+    } catch {
+      // Ignore - JWT may already be invalid
+    } finally {
+      clearStoredJwt();
+      setUser(null);
+    }
   };
 
   return { user, loading, signUp, signIn, signOut };

@@ -28,6 +28,8 @@ In the [Supabase Dashboard](https://supabase.com/dashboard) → SQL Editor:
 
 This gives you: `profiles` (username + password_hash), `conversations`, `conversation_members`, `messages`, `daily_message_counts`, RLS, daily-limit trigger, and RPCs `sign_up`, `login_verify`, `get_or_create_1v1_conversation`.
 
+- **Online status:** run `supabase/add_last_seen.sql` to add `last_seen_at`, the `update_last_seen` RPC, and show online indicators in the sidebar and chat header.
+
 ### 3. Login Edge Function and secret
 
 Login uses a Supabase Edge Function that checks username/password and returns a JWT.

@@ -62,11 +62,15 @@ export function useConversation(
       }
 
       const otherId = otherMembers[0].user_id;
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, username, display_name, avatar_url')
         .eq('id', otherId)
         .single();
+
+      if (profileError && !cancelled) {
+        console.warn('Failed to fetch other profile:', profileError);
+      }
 
       if (!cancelled)
         setData({

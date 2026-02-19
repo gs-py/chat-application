@@ -12,7 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useConversation } from '@/hooks/useConversation';
 import { useMessages } from '@/hooks/useMessages';
 import { useDailyLimit } from '@/hooks/useDailyLimit';
-import { useProfiles, type PublicProfile } from '@/hooks/useProfiles';
+import { useProfiles, type PublicProfile, isOnline, formatLastSeen } from '@/hooks/useProfiles';
+import { usePresence } from '@/hooks/usePresence';
 import { cn } from '@/lib/utils';
 import {
   MessageCircle,
@@ -31,7 +32,7 @@ type CurrentProfile = {
 export function Chat() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
-  const { profiles, loading: profilesLoading } = useProfiles();
+  const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
   const [selectedOtherUserId, setSelectedOtherUserId] = useState<string | null>(
     null
   );
@@ -50,6 +51,8 @@ export function Chat() {
   );
   const [currentProfile, setCurrentProfile] =
     useState<CurrentProfile | null>(null);
+
+  usePresence(user?.id, refetchProfiles);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -94,8 +97,11 @@ export function Chat() {
 
   if (!user) return null;
 
-  const headerTitle = selectedOtherUserId
-    ? otherProfile?.display_name ?? otherProfile?.username ?? 'Chat'
+  const headerProfile = selectedOtherUserId
+    ? profiles.find((p) => p.id === selectedOtherUserId) ?? otherProfile
+    : null;
+  const headerTitle = headerProfile
+    ? (headerProfile.display_name ?? headerProfile.username ?? 'Chat')
     : 'Chat';
 
   return (
@@ -107,6 +113,30 @@ export function Chat() {
               <>
                 <MessageCircle className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 {headerTitle}
+                {headerProfile && (
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-xs font-medium',
+                      isOnline(headerProfile.last_seen_at ?? null)
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-zinc-500 dark:text-zinc-400'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'size-2 rounded-full shrink-0',
+                        isOnline(headerProfile.last_seen_at ?? null)
+                          ? 'bg-emerald-500'
+                          : 'bg-zinc-400 dark:bg-zinc-500'
+                      )}
+                    />
+                    {isOnline(headerProfile.last_seen_at ?? null)
+                      ? 'Online'
+                      : headerProfile.last_seen_at
+                        ? `Last seen ${formatLastSeen(headerProfile.last_seen_at).toLowerCase()}`
+                        : 'Offline'}
+                  </span>
+                )}
               </>
             ) : (
               'Chat'
@@ -179,6 +209,7 @@ export function Chat() {
                       profile={p}
                       selected={selectedOtherUserId === p.id}
                       onSelect={() => setSelectedOtherUserId(p.id)}
+                      online={isOnline(p.last_seen_at)}
                     />
                   ))}
                 </ul>
@@ -253,10 +284,12 @@ function UserRow({
   profile,
   selected,
   onSelect,
+  online,
 }: {
   profile: PublicProfile;
   selected: boolean;
   onSelect: () => void;
+  online: boolean;
 }) {
   const label = profile.display_name ?? profile.username;
   const sub = profile.display_name ? `@${profile.username}` : null;
@@ -272,14 +305,23 @@ function UserRow({
             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
         )}
       >
-        <Avatar size="sm" className="size-9 shrink-0 ring-2 ring-white dark:ring-zinc-800">
-          {profile.avatar_url && (
-            <AvatarImage src={profile.avatar_url} alt="" />
-          )}
-          <AvatarFallback className="text-xs font-medium bg-zinc-200 text-zinc-600 dark:bg-zinc-600 dark:text-zinc-200">
-            {label.slice(0, 2).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <div className="relative shrink-0">
+          <Avatar size="sm" className="size-9 ring-2 ring-white dark:ring-zinc-800">
+            {profile.avatar_url && (
+              <AvatarImage src={profile.avatar_url} alt="" />
+            )}
+            <AvatarFallback className="text-xs font-medium bg-zinc-200 text-zinc-600 dark:bg-zinc-600 dark:text-zinc-200">
+              {label.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <span
+            className={cn(
+              'absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white dark:border-zinc-800',
+              online ? 'bg-emerald-500' : 'bg-zinc-400 dark:bg-zinc-500'
+            )}
+            title={online ? 'Online' : 'Offline'}
+          />
+        </div>
         <div className="min-w-0 flex-1">
           <p className="font-medium truncate">{label}</p>
           {sub && (
