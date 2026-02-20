@@ -33,21 +33,21 @@ export function MessageInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex gap-2 p-4 border-t border-zinc-200 bg-white shrink-0 dark:border-zinc-800 dark:bg-zinc-900"
+      className="flex gap-2 p-3 sm:p-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-zinc-200 bg-white shrink-0 dark:border-zinc-800 dark:bg-zinc-900"
     >
       <Input
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
-        className="flex-1 rounded-full border-zinc-200 bg-zinc-50 px-4 py-5 text-sm focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-800"
+        className="flex-1 min-w-0 rounded-xl border-zinc-200 bg-zinc-100 px-4 py-4 sm:py-5 text-base sm:text-sm focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:focus-visible:ring-zinc-500 dark:focus-visible:border-zinc-500"
       />
       <Button
         type="submit"
         disabled={disabled || !value.trim() || sending}
-        className="shrink-0 size-11 rounded-full bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+        className="shrink-0 size-11 min-w-11 rounded-xl bg-zinc-800 hover:bg-zinc-700 dark:bg-zinc-200 dark:hover:bg-zinc-100 dark:text-zinc-900 text-zinc-100 touch-manipulation transition-colors duration-200"
       >
-        <Send className="size-5" />
+        <Send className="size-5" strokeWidth={2} />
       </Button>
     </form>
   );

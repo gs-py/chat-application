@@ -131,3 +131,8 @@
 .animate-gradient {
   animation: gradient-shift 12s ease infinite;
 }
+
+/* Momentum scrolling on iOS */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}

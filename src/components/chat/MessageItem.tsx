@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { Message } from '@/types/database';
 
@@ -12,6 +11,10 @@ type Props = {
   message: Message;
   profile: MessageSenderProfile | null;
   isOwn: boolean;
+  /** Show name for first message in consecutive group */
+  showName?: boolean;
+  /** Animation delay in ms */
+  animationDelay?: number;
 };
 
 function formatTime(iso: string) {
@@ -22,7 +25,7 @@ function formatTime(iso: string) {
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export function MessageItem({ message, profile, isOwn }: Props) {
+export function MessageItem({ message, profile, isOwn, showName = true, animationDelay = 0 }: Props) {
   const name = isOwn
     ? (profile?.display_name ?? profile?.username ?? 'You')
     : (profile?.display_name ?? profile?.username ?? 'Chat');
@@ -30,42 +33,46 @@ export function MessageItem({ message, profile, isOwn }: Props) {
   return (
     <div
       className={cn(
-        'flex gap-3 px-4 py-2',
-        isOwn && 'flex-row-reverse'
+        'flex px-3 sm:px-4 py-1.5 sm:py-2',
+        isOwn && 'justify-end',
+        'animate-in fade-in duration-200 fill-mode-both'
       )}
+      style={{ animationDelay: `${animationDelay}ms` }}
     >
-      <Avatar className="size-9 shrink-0 ring-2 ring-zinc-100 dark:ring-zinc-800">
-        {profile?.avatar_url && (
-          <AvatarImage src={profile.avatar_url} alt="" />
-        )}
-        <AvatarFallback className="text-xs font-medium bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-200">
-          {name.slice(0, 2).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
       <div
         className={cn(
-          'flex flex-col max-w-[78%] min-w-0',
+          'flex flex-col max-w-[85%] sm:max-w-[75%] min-w-0',
           isOwn && 'items-end'
         )}
       >
-        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-0.5 px-0.5">
-          {name}
-        </span>
+        {showName && !isOwn && (
+          <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-500 mb-1 px-1">
+            {name}
+          </span>
+        )}
         <div
           className={cn(
-            'rounded-2xl px-4 py-2.5 text-sm shadow-sm',
+            'group rounded-2xl px-3.5 py-2.5 text-sm',
+            'transition-all duration-200',
             isOwn
-              ? 'bg-emerald-600 text-white rounded-br-md dark:bg-emerald-500'
-              : 'bg-white text-zinc-800 rounded-bl-md border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:border-zinc-700'
+              ? 'bg-zinc-800 text-zinc-100 rounded-br-md dark:bg-zinc-200 dark:text-zinc-900'
+              : 'bg-zinc-100 text-zinc-900 rounded-bl-md dark:bg-zinc-800/80 dark:text-zinc-100 dark:border dark:border-zinc-700/50'
           )}
         >
-          <p className="whitespace-pre-wrap wrap-break-word leading-relaxed">
+          <p className="whitespace-pre-wrap break-words leading-relaxed">
             {message.content}
           </p>
+          <div className="flex justify-end mt-1">
+            <span
+              className={cn(
+                'text-[10px] opacity-60',
+                isOwn ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-500 dark:text-zinc-400'
+              )}
+            >
+              {formatTime(message.created_at)}
+            </span>
+          </div>
         </div>
-        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 px-0.5">
-          {formatTime(message.created_at)}
-        </span>
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ import {
   User,
   Users,
   ChevronRight,
+  ArrowLeft,
 } from 'lucide-react';
 
 type CurrentProfile = {
@@ -107,18 +108,30 @@ export function Chat() {
   return (
     <MainLayout
       header={
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {/* Back button (mobile only, when in chat) */}
+          {selectedOtherUserId && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSelectedOtherUserId(null)}
+              className="md:hidden shrink-0 size-9 -ml-1 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
+              aria-label="Back to conversations"
+            >
+              <ArrowLeft className="size-5" />
+            </Button>
+          )}
+          <h1 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-2 min-w-0">
             {selectedOtherUserId ? (
               <>
-                <MessageCircle className="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <MessageCircle className="size-5 text-zinc-500 dark:text-zinc-400 shrink-0" />
                 {headerTitle}
                 {headerProfile && (
                   <span
                     className={cn(
                       'inline-flex items-center gap-1.5 text-xs font-medium',
                       isOnline(headerProfile.last_seen_at ?? null)
-                        ? 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-zinc-600 dark:text-zinc-300'
                         : 'text-zinc-500 dark:text-zinc-400'
                     )}
                   >
@@ -126,7 +139,7 @@ export function Chat() {
                       className={cn(
                         'size-2 rounded-full shrink-0',
                         isOnline(headerProfile.last_seen_at ?? null)
-                          ? 'bg-emerald-500'
+                          ? 'bg-zinc-500 dark:bg-zinc-400'
                           : 'bg-zinc-400 dark:bg-zinc-500'
                       )}
                     />
@@ -142,25 +155,32 @@ export function Chat() {
               'Chat'
             )}
           </h1>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 md:gap-2 shrink-0 ml-auto">
             <DailyLimitBadge used={used} limit={limit} loading={limitLoading} />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => signOut().then(() => navigate('/login'))}
-              className="text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
+              className="text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 size-9 md:size-auto md:px-3 md:py-2"
+              aria-label="Sign out"
             >
-              <LogOut className="size-4 mr-1" />
-              Sign out
+              <LogOut className="size-4 md:mr-1" />
+              <span className="hidden md:inline">Sign out</span>
             </Button>
           </div>
         </div>
       }
     >
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar */}
-        <aside className="w-72 shrink-0 flex flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        {/* Sidebar - hidden on mobile when chat selected */}
+        <aside
+          className={cn(
+            'shrink-0 flex flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900',
+            'w-full md:w-72 lg:w-80',
+            selectedOtherUserId && 'hidden md:flex'
+          )}
+        >
+          <div className="p-3 sm:p-4 border-b border-zinc-200 dark:border-zinc-800">
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <User className="size-3.5" />
               You
@@ -170,7 +190,7 @@ export function Chat() {
                 {currentProfile?.avatar_url && (
                   <AvatarImage src={currentProfile.avatar_url} alt="" />
                 )}
-                <AvatarFallback className="text-sm font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                <AvatarFallback className="text-sm font-medium bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
                   {(currentProfile?.display_name ?? currentProfile?.username ?? '?').slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -191,7 +211,7 @@ export function Chat() {
               <Users className="size-3.5" />
               Start a chat
             </p>
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-touch">
               {profilesLoading ? (
                 <div className="px-4 py-3 flex items-center gap-2 text-zinc-500">
                   <div className="animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-700 size-6" />
@@ -218,19 +238,24 @@ export function Chat() {
           </div>
         </aside>
 
-        {/* Main */}
-        <main className="flex-1 min-w-0 flex flex-col relative bg-zinc-50 dark:bg-zinc-950">
+        {/* Main - hidden on mobile when no chat selected */}
+        <main
+          className={cn(
+            'flex-1 min-w-0 flex flex-col relative bg-zinc-50 dark:bg-zinc-950',
+            !selectedOtherUserId && 'hidden md:flex'
+          )}
+        >
           {!selectedOtherUserId ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
-              <div className="rounded-2xl bg-zinc-100 p-8 dark:bg-zinc-800">
-                <MessageCircle className="size-16 text-zinc-400 dark:text-zinc-500" />
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center animate-in fade-in duration-300">
+              <div className="rounded-2xl bg-zinc-100/80 p-6 dark:bg-zinc-800/50">
+                <MessageCircle className="size-12 text-zinc-400 dark:text-zinc-500" />
               </div>
               <div>
-                <p className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
+                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                   Select a conversation
                 </p>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
-                  Choose someone from the list to start chatting
+                  Choose someone from the list
                 </p>
               </div>
             </div>
@@ -244,7 +269,7 @@ export function Chat() {
               {conversationId && (
                 <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
                   <div
-                    className="absolute inset-0 z-0 bg-cover bg-center opacity-30 blur-sm dark:opacity-25"
+                    className="absolute inset-0 z-0 bg-cover bg-center opacity-25 blur-sm dark:opacity-20 bg-no-repeat"
                     style={{ backgroundImage: `url('/chat-bg.jpeg')` }}
                     aria-hidden
                   />
@@ -299,9 +324,9 @@ function UserRow({
         type="button"
         onClick={onSelect}
         className={cn(
-          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors',
+          'w-full flex items-center gap-3 px-3 py-3 sm:py-2.5 rounded-xl text-left transition-colors touch-manipulation min-h-[52px] sm:min-h-0',
           selected
-            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+            ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
             : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
         )}
       >
@@ -317,7 +342,7 @@ function UserRow({
           <span
             className={cn(
               'absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white dark:border-zinc-800',
-              online ? 'bg-emerald-500' : 'bg-zinc-400 dark:bg-zinc-500'
+              online ? 'bg-zinc-500 dark:bg-zinc-400' : 'bg-zinc-400 dark:bg-zinc-500'
             )}
             title={online ? 'Online' : 'Offline'}
           />
@@ -331,7 +356,7 @@ function UserRow({
         <ChevronRight
           className={cn(
             'size-4 shrink-0',
-            selected ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400'
+            selected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'
           )}
         />
       </button>
