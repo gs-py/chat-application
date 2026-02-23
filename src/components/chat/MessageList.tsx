@@ -44,6 +44,8 @@ export function MessageList({
   onReply,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const prevMessageCountRef = useRef(0);
 
   const messageById = useRef<Map<string, Message>>(new Map());
   messageById.current = new Map(messages.map((m) => [m.id, m]));
@@ -64,7 +66,17 @@ export function MessageList({
   };
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const isNewMessage = messages.length > prevMessageCountRef.current;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const isNearBottom = distanceFromBottom < 150;
+
+    // Auto-scroll only if user is near bottom or a new message just arrived
+    if (isNearBottom || isNewMessage) {
+      bottomRef.current?.scrollIntoView({ behavior: isNewMessage ? 'smooth' : 'auto' });
+    }
+    prevMessageCountRef.current = messages.length;
   }, [messages]);
 
   if (loading) {
@@ -106,7 +118,7 @@ export function MessageList({
   };
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-touch">
+    <div ref={scrollContainerRef} className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-touch">
       <div className="flex flex-col py-4 pb-3">
         {messages.map((msg, idx) => (
           <div key={msg.id}>
