@@ -17,14 +17,15 @@ export function DailyLimitBadge({ used, limit, loading }: Props) {
     <Badge
       variant="secondary"
       className={cn(
-        "shrink-0 gap-1 font-normal border-0",
-        isAtLimit
-          ? "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
-          : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+        "shrink-0 gap-1.5 font-medium border-0 text-[11px] px-2.5 py-1 rounded-full"
       )}
+      style={{
+        backgroundColor: isAtLimit ? 'rgba(249, 115, 22, 0.12)' : 'var(--chat-surface-tertiary)',
+        color: isAtLimit ? 'var(--chat-accent)' : 'var(--chat-text-secondary)',
+      }}
     >
       <MessageSquare className="size-3" />
-      {used} / {limit}
+      {used}/{limit}
     </Badge>
   );
 }

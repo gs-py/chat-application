@@ -23,6 +23,7 @@ import {
   ChevronRight,
   ArrowLeft,
 } from 'lucide-react';
+import type { Message } from '@/types/database';
 
 type CurrentProfile = {
   username: string;
@@ -52,6 +53,11 @@ export function Chat() {
   );
   const [currentProfile, setCurrentProfile] =
     useState<CurrentProfile | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+
+  useEffect(() => {
+    setReplyingTo(null);
+  }, [conversationId]);
 
   usePresence(user?.id, refetchProfiles);
 
@@ -71,9 +77,14 @@ export function Chat() {
       .then(({ data }) => setCurrentProfile(data ?? null));
   }, [user?.id]);
 
-  const handleSend = async (content: string) => {
+  const handleSend = async (
+    content: string,
+    replyToId?: string | null,
+    imageUrl?: string | null
+  ) => {
     try {
-      await sendMessage(content);
+      await sendMessage(content, replyToId, imageUrl);
+      setReplyingTo(null);
       refetchDailyLimit();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to send';
@@ -87,10 +98,13 @@ export function Chat() {
 
   if (authLoading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-        <div className="flex flex-col items-center gap-3 text-zinc-500">
-          <div className="animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-700 size-12" />
-          <p className="text-sm font-medium">Loading…</p>
+      <div className="min-h-dvh flex items-center justify-center" style={{ backgroundColor: 'var(--chat-surface)' }}>
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="animate-pulse rounded-full size-10"
+            style={{ backgroundColor: 'var(--chat-accent)', opacity: 0.2 }}
+          />
+          <p className="text-sm font-medium" style={{ color: 'var(--chat-text-secondary)' }}>Loading…</p>
         </div>
       </div>
     );
@@ -108,121 +122,173 @@ export function Chat() {
   return (
     <MainLayout
       header={
-        <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* Back button (mobile only, when in chat) */}
           {selectedOtherUserId && (
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setSelectedOtherUserId(null)}
-              className="md:hidden shrink-0 size-9 -ml-1 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800"
+              className="md:hidden shrink-0 size-9 -ml-1 rounded-xl"
+              style={{ color: 'var(--chat-text-primary)' }}
               aria-label="Back to conversations"
             >
               <ArrowLeft className="size-5" />
             </Button>
           )}
-          <h1 className="font-semibold text-zinc-900 dark:text-zinc-100 truncate flex items-center gap-2 min-w-0">
-            {selectedOtherUserId ? (
-              <>
-                <MessageCircle className="size-5 text-zinc-500 dark:text-zinc-400 shrink-0" />
-                {headerTitle}
-                {headerProfile && (
-                  <span
-                    className={cn(
-                      'inline-flex items-center gap-1.5 text-xs font-medium',
-                      isOnline(headerProfile.last_seen_at ?? null)
-                        ? 'text-zinc-600 dark:text-zinc-300'
-                        : 'text-zinc-500 dark:text-zinc-400'
-                    )}
+
+          {/* Header content */}
+          {selectedOtherUserId && headerProfile ? (
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="relative shrink-0">
+                <Avatar size="sm" className="size-10 ring-0">
+                  {headerProfile.avatar_url && (
+                    <AvatarImage src={headerProfile.avatar_url} alt="" />
+                  )}
+                  <AvatarFallback
+                    className="text-sm font-semibold text-white"
+                    style={{ backgroundColor: 'var(--chat-accent)' }}
                   >
-                    <span
-                      className={cn(
-                        'size-2 rounded-full shrink-0',
-                        isOnline(headerProfile.last_seen_at ?? null)
-                          ? 'bg-zinc-500 dark:bg-zinc-400'
-                          : 'bg-zinc-400 dark:bg-zinc-500'
-                      )}
-                    />
-                    {isOnline(headerProfile.last_seen_at ?? null)
-                      ? 'Online'
-                      : headerProfile.last_seen_at
-                        ? `Last seen ${formatLastSeen(headerProfile.last_seen_at).toLowerCase()}`
-                        : 'Offline'}
-                  </span>
+                    {(headerProfile.display_name ?? headerProfile.username ?? '?').slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {isOnline(headerProfile.last_seen_at ?? null) && (
+                  <span
+                    className="absolute bottom-0 right-0 size-3 rounded-full border-2"
+                    style={{
+                      backgroundColor: 'var(--chat-online)',
+                      borderColor: 'var(--chat-header-bg)',
+                    }}
+                  />
                 )}
-              </>
-            ) : (
-              'Chat'
-            )}
-          </h1>
-          <div className="flex items-center gap-1.5 md:gap-2 shrink-0 ml-auto">
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1
+                  className="font-semibold text-[16px] leading-tight truncate"
+                  style={{ color: 'var(--chat-text-primary)' }}
+                >
+                  {headerTitle}
+                </h1>
+                <p
+                  className="text-[12px] leading-tight mt-0.5 truncate"
+                  style={{ color: isOnline(headerProfile.last_seen_at ?? null) ? 'var(--chat-online)' : 'var(--chat-text-muted)' }}
+                >
+                  {isOnline(headerProfile.last_seen_at ?? null)
+                    ? 'Online'
+                    : headerProfile.last_seen_at
+                      ? `Last seen ${formatLastSeen(headerProfile.last_seen_at).toLowerCase()}`
+                      : 'Offline'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <h1
+              className="font-semibold text-[18px] truncate flex items-center gap-2.5 min-w-0"
+              style={{ color: 'var(--chat-text-primary)' }}
+            >
+              <MessageCircle className="size-5 shrink-0" style={{ color: 'var(--chat-accent)' }} />
+              Chat
+            </h1>
+          )}
+
+          {/* Right action icons */}
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
             <DailyLimitBadge used={used} limit={limit} loading={limitLoading} />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => signOut().then(() => navigate('/login'))}
-              className="text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 size-9 md:size-auto md:px-3 md:py-2"
+              className="rounded-xl size-9 md:size-auto md:px-3 md:py-2"
+              style={{ color: 'var(--chat-text-secondary)' }}
               aria-label="Sign out"
             >
-              <LogOut className="size-4 md:mr-1" />
-              <span className="hidden md:inline">Sign out</span>
+              <LogOut className="size-4 md:mr-1.5" />
+              <span className="hidden md:inline text-[13px]">Sign out</span>
             </Button>
           </div>
         </div>
       }
     >
       <div className="flex flex-1 min-h-0 overflow-hidden">
-        {/* Sidebar - hidden on mobile when chat selected */}
+        {/* Sidebar */}
         <aside
           className={cn(
-            'shrink-0 flex flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900',
-            'w-full md:w-72 lg:w-80',
+            'shrink-0 flex flex-col',
+            'w-full md:w-[280px] lg:w-[320px]',
             selectedOtherUserId && 'hidden md:flex'
           )}
+          style={{
+            backgroundColor: 'var(--chat-sidebar-bg)',
+            borderRight: '1px solid var(--chat-border)',
+          }}
         >
-          <div className="p-3 sm:p-4 border-b border-zinc-200 dark:border-zinc-800">
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-              <User className="size-3.5" />
-              You
+          {/* Current user card */}
+          <div
+            className="px-4 py-4"
+            style={{ borderBottom: '1px solid var(--chat-border)' }}
+          >
+            <p
+              className="text-[11px] font-semibold uppercase tracking-widest mb-3 flex items-center gap-2"
+              style={{ color: 'var(--chat-text-muted)' }}
+            >
+              <User className="size-3" />
+              Your Profile
             </p>
-            <div className="flex items-center gap-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 p-3">
-              <Avatar size="sm" className="size-10 shrink-0 ring-2 ring-white dark:ring-zinc-800">
+            <div
+              className="flex items-center gap-3 rounded-2xl p-3"
+              style={{ backgroundColor: 'var(--chat-surface)', boxShadow: 'var(--chat-shadow-sm)' }}
+            >
+              <Avatar size="sm" className="size-10 shrink-0 ring-0">
                 {currentProfile?.avatar_url && (
                   <AvatarImage src={currentProfile.avatar_url} alt="" />
                 )}
-                <AvatarFallback className="text-sm font-medium bg-zinc-200 text-zinc-700 dark:bg-zinc-600 dark:text-zinc-200">
+                <AvatarFallback
+                  className="text-sm font-semibold text-white"
+                  style={{ backgroundColor: 'var(--chat-accent)' }}
+                >
                   {(currentProfile?.display_name ?? currentProfile?.username ?? '?').slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                <p
+                  className="font-semibold text-[14px] truncate"
+                  style={{ color: 'var(--chat-text-primary)' }}
+                >
                   {currentProfile?.display_name ?? currentProfile?.username ?? '…'}
                 </p>
                 {currentProfile?.display_name && (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
+                  <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--chat-text-muted)' }}>
                     @{currentProfile?.username}
                   </p>
                 )}
               </div>
             </div>
           </div>
+
+          {/* Contact list */}
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider px-4 py-3 flex items-center gap-2 shrink-0">
-              <Users className="size-3.5" />
-              Start a chat
+            <p
+              className="text-[11px] font-semibold uppercase tracking-widest px-4 py-3 flex items-center gap-2 shrink-0"
+              style={{ color: 'var(--chat-text-muted)' }}
+            >
+              <Users className="size-3" />
+              Conversations
             </p>
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-touch">
+            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-touch px-2">
               {profilesLoading ? (
-                <div className="px-4 py-3 flex items-center gap-2 text-zinc-500">
-                  <div className="animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-700 size-6" />
+                <div className="px-3 py-3 flex items-center gap-3" style={{ color: 'var(--chat-text-muted)' }}>
+                  <div
+                    className="animate-pulse rounded-full size-8"
+                    style={{ backgroundColor: 'var(--chat-border)' }}
+                  />
                   <span className="text-sm">Loading…</span>
                 </div>
               ) : profiles.length === 0 ? (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 px-4 py-3">
+                <p className="text-sm px-3 py-3" style={{ color: 'var(--chat-text-muted)' }}>
                   No other users yet
                 </p>
               ) : (
-                <ul className="py-1 px-2">
+                <ul className="py-1 space-y-0.5">
                   {profiles.map((p) => (
                     <UserRow
                       key={p.id}
@@ -238,36 +304,41 @@ export function Chat() {
           </div>
         </aside>
 
-        {/* Main - hidden on mobile when no chat selected */}
+        {/* Main chat area */}
         <main
           className={cn(
-            'flex-1 min-w-0 flex flex-col relative bg-zinc-50 dark:bg-zinc-950',
+            'flex-1 min-w-0 flex flex-col relative',
             !selectedOtherUserId && 'hidden md:flex'
           )}
+          style={{ backgroundColor: 'var(--chat-surface-secondary)' }}
         >
           {!selectedOtherUserId ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center animate-in fade-in duration-300">
-              <div className="rounded-2xl bg-zinc-100/80 p-6 dark:bg-zinc-800/50">
-                <MessageCircle className="size-12 text-zinc-400 dark:text-zinc-500" />
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6 text-center animate-in fade-in duration-300">
+              <div
+                className="rounded-3xl p-7"
+                style={{ backgroundColor: 'var(--chat-accent-light)' }}
+              >
+                <MessageCircle className="size-14" style={{ color: 'var(--chat-accent)', opacity: 0.7 }} />
               </div>
               <div>
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                <p className="text-lg font-semibold" style={{ color: 'var(--chat-text-primary)' }}>
                   Select a conversation
                 </p>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-xs">
-                  Choose someone from the list
+                <p className="text-[14px] mt-1.5 max-w-[260px]" style={{ color: 'var(--chat-text-muted)' }}>
+                  Choose someone from the sidebar to start chatting
                 </p>
               </div>
             </div>
           ) : (
             <>
               {convError && (
-                <p className="text-sm text-red-600 dark:text-red-400 px-4 py-2 bg-red-50 dark:bg-red-950/30">
+                <p className="text-sm text-red-600 px-4 py-2 bg-red-50">
                   {convError.message}
                 </p>
               )}
               {conversationId && (
                 <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
+                  {/* Original background image */}
                   <div
                     className="absolute inset-0 z-0 bg-cover bg-center opacity-25 blur-sm dark:opacity-20 bg-no-repeat"
                     style={{ backgroundImage: `url('/chat-bg.jpeg')` }}
@@ -280,6 +351,7 @@ export function Chat() {
                     currentUserProfile={currentProfile}
                     otherProfile={otherProfile ?? null}
                     loading={messagesLoading}
+                    onReply={setReplyingTo}
                   />
                   <MessageInput
                     onSend={handleSend}
@@ -287,13 +359,27 @@ export function Chat() {
                     placeholder={
                       isAtLimit ? 'Daily limit reached' : 'Type a message…'
                     }
+                    replyingTo={replyingTo}
+                    replySenderName={
+                      replyingTo
+                        ? replyingTo.sender_id === user.id
+                          ? (currentProfile?.display_name ?? currentProfile?.username ?? 'You')
+                          : (otherProfile?.display_name ?? otherProfile?.username ?? 'Chat')
+                        : undefined
+                    }
+                    onClearReply={() => setReplyingTo(null)}
+                    conversationId={conversationId}
+                    userId={user.id}
                   />
                   </div>
                 </div>
               )}
               {!convLoading && !conversationId && !convError && selectedOtherUserId && (
-                <div className="flex-1 flex items-center justify-center gap-2 text-zinc-500">
-                  <div className="animate-pulse rounded-full bg-zinc-200 dark:bg-zinc-700 size-4" />
+                <div className="flex-1 flex items-center justify-center gap-2" style={{ color: 'var(--chat-text-muted)' }}>
+                  <div
+                    className="animate-pulse rounded-full size-4"
+                    style={{ backgroundColor: 'var(--chat-accent)', opacity: 0.2 }}
+                  />
                   <span className="text-sm">Setting up your chat…</span>
                 </div>
               )}
@@ -324,40 +410,54 @@ function UserRow({
         type="button"
         onClick={onSelect}
         className={cn(
-          'w-full flex items-center gap-3 px-3 py-3 sm:py-2.5 rounded-xl text-left transition-colors touch-manipulation min-h-[52px] sm:min-h-0',
-          selected
-            ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
-            : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
+          'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 touch-manipulation min-h-[52px] sm:min-h-0',
         )}
+        style={{
+          backgroundColor: selected ? 'var(--chat-accent-light)' : 'transparent',
+          borderLeft: selected ? '3px solid var(--chat-accent)' : '3px solid transparent',
+        }}
+        onMouseEnter={(e) => {
+          if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--chat-surface)';
+        }}
+        onMouseLeave={(e) => {
+          if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';
+        }}
       >
         <div className="relative shrink-0">
-          <Avatar size="sm" className="size-9 ring-2 ring-white dark:ring-zinc-800">
+          <Avatar size="sm" className="size-11 ring-0">
             {profile.avatar_url && (
               <AvatarImage src={profile.avatar_url} alt="" />
             )}
-            <AvatarFallback className="text-xs font-medium bg-zinc-200 text-zinc-600 dark:bg-zinc-600 dark:text-zinc-200">
+            <AvatarFallback
+              className="text-sm font-semibold text-white"
+              style={{ backgroundColor: 'var(--chat-accent)' }}
+            >
               {label.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <span
-            className={cn(
-              'absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-white dark:border-zinc-800',
-              online ? 'bg-zinc-500 dark:bg-zinc-400' : 'bg-zinc-400 dark:bg-zinc-500'
-            )}
+            className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full"
+            style={{
+              backgroundColor: online ? 'var(--chat-online)' : 'var(--chat-text-muted)',
+              border: `2px solid var(--chat-sidebar-bg)`,
+            }}
             title={online ? 'Online' : 'Offline'}
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-medium truncate">{label}</p>
+          <p
+            className="font-medium text-[14px] truncate"
+            style={{ color: selected ? 'var(--chat-accent)' : 'var(--chat-text-primary)' }}
+          >
+            {label}
+          </p>
           {sub && (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{sub}</p>
+            <p className="text-[12px] truncate mt-0.5" style={{ color: 'var(--chat-text-muted)' }}>{sub}</p>
           )}
         </div>
         <ChevronRight
-          className={cn(
-            'size-4 shrink-0',
-            selected ? 'text-zinc-600 dark:text-zinc-300' : 'text-zinc-400'
-          )}
+          className="size-4 shrink-0"
+          style={{ color: selected ? 'var(--chat-accent)' : 'var(--chat-text-muted)', opacity: 0.5 }}
         />
       </button>
     </li>

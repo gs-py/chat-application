@@ -73,6 +73,8 @@ export interface Database {
           conversation_id: string;
           sender_id: string;
           content: string;
+          reply_to_id: string | null;
+          image_url: string | null;
           created_at: string;
         };
         Insert: {
@@ -80,6 +82,8 @@ export interface Database {
           conversation_id: string;
           sender_id: string;
           content: string;
+          reply_to_id?: string | null;
+          image_url?: string | null;
           created_at?: string;
         };
         Update: {
@@ -87,6 +91,8 @@ export interface Database {
           conversation_id?: string;
           sender_id?: string;
           content?: string;
+          reply_to_id?: string | null;
+          image_url?: string | null;
           created_at?: string;
         };
       };

@@ -72,15 +72,22 @@ export function useMessages(conversationId: string | null, userId: string | unde
     };
   }, [conversationId]);
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (
+    content: string,
+    replyToId?: string | null,
+    imageUrl?: string | null
+  ) => {
     if (!userId || !conversationId) return;
     const trimmed = content.trim();
+    if (!trimmed && !imageUrl) return;
     const tempId = `temp-${Date.now()}`;
     const optimistic: Message = {
       id: tempId,
       conversation_id: conversationId,
       sender_id: userId,
       content: trimmed,
+      reply_to_id: replyToId ?? null,
+      image_url: imageUrl ?? null,
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimistic]);
@@ -90,7 +97,9 @@ export function useMessages(conversationId: string | null, userId: string | unde
       .insert({
         conversation_id: conversationId,
         sender_id: userId,
-        content: trimmed,
+        content: trimmed || '',
+        reply_to_id: replyToId ?? null,
+        image_url: imageUrl ?? null,
       })
       .select('*')
       .single();

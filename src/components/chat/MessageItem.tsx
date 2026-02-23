@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import type { Message } from '@/types/database';
+import { Reply } from 'lucide-react';
 
 export type MessageSenderProfile = {
   display_name: string | null;
@@ -7,14 +8,20 @@ export type MessageSenderProfile = {
   avatar_url?: string | null;
 };
 
+export type RepliedToMessage = {
+  id: string;
+  content: string;
+  senderDisplayName: string;
+};
+
 type Props = {
   message: Message;
   profile: MessageSenderProfile | null;
   isOwn: boolean;
-  /** Show name for first message in consecutive group */
+  repliedTo?: RepliedToMessage | null;
   showName?: boolean;
-  /** Animation delay in ms */
   animationDelay?: number;
+  onReply?: (message: Message) => void;
 };
 
 function formatTime(iso: string) {
@@ -25,54 +32,150 @@ function formatTime(iso: string) {
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export function MessageItem({ message, profile, isOwn, showName = true, animationDelay = 0 }: Props) {
+const REPLY_SNIPPET_MAX = 80;
+
+export function MessageItem({
+  message,
+  profile,
+  isOwn,
+  repliedTo,
+  showName = true,
+  animationDelay = 0,
+  onReply,
+}: Props) {
   const name = isOwn
     ? (profile?.display_name ?? profile?.username ?? 'You')
     : (profile?.display_name ?? profile?.username ?? 'Chat');
 
+  const snippet =
+    repliedTo?.content.length && repliedTo.content.length > REPLY_SNIPPET_MAX
+      ? repliedTo.content.slice(0, REPLY_SNIPPET_MAX) + '…'
+      : repliedTo?.content ?? '';
+
   return (
     <div
       className={cn(
-        'flex px-3 sm:px-4 py-1.5 sm:py-2',
-        isOwn && 'justify-end',
-        'animate-in fade-in duration-200 fill-mode-both'
+        'flex px-4 sm:px-5',
+        isOwn ? 'justify-end' : 'justify-start',
+        showName ? 'pt-3' : 'pt-[2px]',
+        'animate-msg-in',
+        onReply && 'cursor-pointer group/msg'
       )}
       style={{ animationDelay: `${animationDelay}ms` }}
+      onClick={() => onReply?.(message)}
+      role={onReply ? 'button' : undefined}
+      tabIndex={onReply ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onReply && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onReply(message);
+        }
+      }}
     >
       <div
         className={cn(
-          'flex flex-col max-w-[85%] sm:max-w-[75%] min-w-0',
+          'flex flex-col max-w-[80%] sm:max-w-[65%] min-w-0 relative',
           isOwn && 'items-end'
         )}
       >
+        {/* Sender name */}
         {showName && !isOwn && (
-          <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-500 mb-1 px-1">
+          <span
+            className="text-[12px] font-semibold mb-1 px-1"
+            style={{ color: 'var(--chat-text-secondary)' }}
+          >
             {name}
           </span>
         )}
+
+        {/* Bubble */}
         <div
-          className={cn(
-            'group rounded-2xl px-3.5 py-2.5 text-sm',
-            'transition-all duration-200',
-            isOwn
-              ? 'bg-zinc-800 text-zinc-100 rounded-br-md dark:bg-zinc-200 dark:text-zinc-900'
-              : 'bg-zinc-100 text-zinc-900 rounded-bl-md dark:bg-zinc-800/80 dark:text-zinc-100 dark:border dark:border-zinc-700/50'
-          )}
+          className="rounded-[20px] px-[14px] py-[10px] text-[14.5px] leading-[1.4] relative"
+          style={{
+            backgroundColor: isOwn ? 'var(--chat-bubble-out)' : 'var(--chat-bubble-in)',
+            color: isOwn ? 'var(--chat-bubble-out-text)' : 'var(--chat-bubble-in-text)',
+            boxShadow: 'var(--chat-shadow-bubble)',
+            borderBottomRightRadius: isOwn ? '6px' : undefined,
+            borderBottomLeftRadius: !isOwn ? '6px' : undefined,
+          }}
         >
-          <p className="whitespace-pre-wrap break-words leading-relaxed">
-            {message.content}
-          </p>
-          <div className="flex justify-end mt-1">
+          {/* Reply indicator */}
+          {repliedTo && (
+            <div
+              className="flex gap-2 mb-2 pl-2.5 py-2 pr-3 rounded-xl border-l-[3px] -mx-1"
+              style={{
+                borderLeftColor: isOwn ? 'rgba(255,255,255,0.5)' : 'var(--chat-accent)',
+                backgroundColor: isOwn ? 'rgba(255,255,255,0.12)' : 'var(--chat-accent-light)',
+              }}
+            >
+              <div className="min-w-0 flex-1">
+                <p
+                  className="text-[12px] font-semibold truncate"
+                  style={{ color: isOwn ? 'rgba(255,255,255,0.85)' : 'var(--chat-accent)' }}
+                >
+                  {repliedTo.senderDisplayName}
+                </p>
+                <p
+                  className="text-[12px] line-clamp-2 break-words mt-0.5"
+                  style={{ color: isOwn ? 'rgba(255,255,255,0.6)' : 'var(--chat-text-muted)' }}
+                >
+                  {snippet}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Image attachment */}
+          {message.image_url && (
+            <a
+              href={message.image_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-xl overflow-hidden mb-2 max-w-[260px] sm:max-w-[280px] focus:outline-none focus:ring-2"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={message.image_url}
+                alt=""
+                className="w-full h-auto max-h-64 object-cover"
+              />
+            </a>
+          )}
+
+          {/* Message text */}
+          {message.content ? (
+            <p className="whitespace-pre-wrap break-words">
+              {message.content}
+            </p>
+          ) : null}
+
+          {/* Timestamp */}
+          <div className="flex items-center justify-end mt-1 -mb-0.5">
             <span
-              className={cn(
-                'text-[10px] opacity-60',
-                isOwn ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-500 dark:text-zinc-400'
-              )}
+              className="text-[11px] leading-none"
+              style={{ color: isOwn ? 'rgba(255,255,255,0.6)' : 'var(--chat-text-muted)' }}
             >
               {formatTime(message.created_at)}
             </span>
           </div>
         </div>
+
+        {/* Reply hint on hover */}
+        {onReply && (
+          <div
+            className="absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/msg:opacity-100 transition-opacity duration-150"
+            style={{
+              [isOwn ? 'left' : 'right']: '-30px',
+            }}
+          >
+            <div
+              className="size-7 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: 'var(--chat-surface)', boxShadow: 'var(--chat-shadow-md)' }}
+            >
+              <Reply className="size-3.5" style={{ color: 'var(--chat-text-muted)' }} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

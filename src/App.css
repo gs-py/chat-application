@@ -136,3 +136,107 @@
 .scroll-touch {
   -webkit-overflow-scrolling: touch;
 }
+
+/* ── Modern Chat Design Tokens ── */
+:root {
+  --chat-accent: #f97316;
+  --chat-accent-hover: #ea580c;
+  --chat-accent-light: rgba(249, 115, 22, 0.08);
+  --chat-bubble-out: #f97316;
+  --chat-bubble-out-text: #ffffff;
+  --chat-bubble-in: #f4f4f5;
+  --chat-bubble-in-text: #18181b;
+  --chat-surface: #ffffff;
+  --chat-surface-secondary: #fafafa;
+  --chat-surface-tertiary: #f4f4f5;
+  --chat-border: #e4e4e7;
+  --chat-text-primary: #18181b;
+  --chat-text-secondary: #71717a;
+  --chat-text-muted: #a1a1aa;
+  --chat-online: #22c55e;
+  --chat-header-bg: #ffffff;
+  --chat-sidebar-bg: #fafafa;
+  --chat-input-bg: #f4f4f5;
+  --chat-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --chat-shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --chat-shadow-bubble: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.dark {
+  --chat-accent: #f97316;
+  --chat-accent-hover: #fb923c;
+  --chat-accent-light: rgba(249, 115, 22, 0.12);
+  --chat-bubble-out: #f97316;
+  --chat-bubble-out-text: #ffffff;
+  --chat-bubble-in: #27272a;
+  --chat-bubble-in-text: #fafafa;
+  --chat-surface: #18181b;
+  --chat-surface-secondary: #1f1f23;
+  --chat-surface-tertiary: #27272a;
+  --chat-border: #3f3f46;
+  --chat-text-primary: #fafafa;
+  --chat-text-secondary: #a1a1aa;
+  --chat-text-muted: #71717a;
+  --chat-online: #22c55e;
+  --chat-header-bg: #18181b;
+  --chat-sidebar-bg: #1f1f23;
+  --chat-input-bg: #27272a;
+  --chat-shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --chat-shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+  --chat-shadow-bubble: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* ── Keyframe Animations ── */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sendScale {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
+}
+
+.animate-msg-in {
+  animation: fadeSlideUp 0.2s ease-out both;
+}
+
+.animate-reply-slide {
+  animation: slideDown 0.2s ease-out both;
+}
+
+.animate-send-press:active {
+  animation: sendScale 0.12s ease-out;
+}
+
+/* Date separator pill */
+.chat-date-pill {
+  display: inline-flex;
+  padding: 4px 14px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: var(--chat-surface);
+  color: var(--chat-text-secondary);
+  box-shadow: var(--chat-shadow-sm);
+}
