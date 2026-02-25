@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { MainLayout } from '@/components/layout/MainLayout';
@@ -38,6 +38,7 @@ type CurrentProfile = {
 
 export function Chat() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading, signOut } = useAuth();
   const { profiles, loading: profilesLoading, refetch: refetchProfiles } = useProfiles();
   const [selectedOtherUserId, setSelectedOtherUserId] = useState<string | null>(
@@ -82,6 +83,15 @@ export function Chat() {
   useEffect(() => {
     if (user && pushConfigured && permission === 'granted') registerToken();
   }, [user?.id, pushConfigured, permission, registerToken]);
+
+  useEffect(() => {
+    if (!user) return;
+    const state = location.state as { openQuotesModal?: boolean } | null;
+    if (state?.openQuotesModal) {
+      setShowQuotesModal(true);
+      navigate('/chat', { replace: true, state: {} });
+    }
+  }, [user, location.state, navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -235,17 +245,6 @@ export function Chat() {
               </Button>
             )}
             <DailyLimitBadge used={used} limit={limit} loading={limitLoading} />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => signOut().then(() => navigate('/login'))}
-              className="rounded-xl size-9 md:size-auto md:px-3 md:py-2"
-              style={{ color: 'var(--chat-text-secondary)' }}
-              aria-label="Sign out"
-            >
-              <LogOut className="size-4 md:mr-1.5" />
-              <span className="hidden md:inline text-[13px]">Sign out</span>
-            </Button>
           </div>
         </div>
       }
@@ -281,6 +280,21 @@ export function Chat() {
               <div className="h-[400px] min-h-0 rounded-xl overflow-hidden">
                 <LoveQuotesPanel />
               </div>
+            </div>
+            <div className="shrink-0 flex justify-end px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowQuotesModal(false);
+                  signOut().then(() => navigate('/login'));
+                }}
+                className="rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                aria-label="Sign out"
+              >
+                <LogOut className="size-4 mr-2" />
+                Byeee love
+              </Button>
             </div>
           </div>
         </div>

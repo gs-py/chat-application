@@ -14,13 +14,13 @@ export function Login() {
       <div className="w-full max-w-[420px] md:max-w-[380px] lg:max-w-[420px]">
         {showSignUp ? (
           <SignUpForm
-            onSuccess={() => navigate('/chat', { replace: true })}
+            onSuccess={() => navigate('/chat', { replace: true, state: { openQuotesModal: true } })}
             onLoginClick={() => setShowSignUp(false)}
             signUp={signUp}
           />
         ) : (
           <LoginForm
-            onSuccess={() => navigate('/chat', { replace: true })}
+            onSuccess={() => navigate('/chat', { replace: true, state: { openQuotesModal: true } })}
             onSignUpClick={() => setShowSignUp(true)}
             signIn={signIn}
           />
