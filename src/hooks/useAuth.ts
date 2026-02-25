@@ -40,18 +40,18 @@ export function useAuth() {
       p_password: password,
     });
     if (error) {
-      // 409 / 23505 = username already taken → try logging in instead
+      // Username already taken
       if (error.code === '23505' || (error as { status?: number }).status === 409) {
         try {
           await signIn(username, password);
           return;
         } catch {
-          throw new Error('Username already taken. Try logging in or choose a different username.');
+          throw new Error('This username is already taken. Try signing in, or choose a different username.');
         }
       }
-      throw error;
+      throw new Error('Something went wrong. Please try again in a moment.');
     }
-    if (!data) throw new Error('Sign up failed');
+    if (!data) throw new Error('Something went wrong. Please try again.');
     await signIn(username, password);
   };
 
@@ -59,9 +59,16 @@ export function useAuth() {
     const { data, error } = await supabase.functions.invoke('login', {
       body: { username: username.trim(), password },
     });
-    if (error) throw new Error(error.message ?? 'Login failed');
     const body = data as { access_token?: string; refresh_token?: string; error?: string } | null;
-    if (!body?.access_token) throw new Error(body?.error ?? 'Login failed');
+    const serverMessage = body?.error;
+
+    if (error) {
+      // Prefer server message when present (e.g. 401/400 response body)
+      throw new Error(serverMessage ?? 'Something went wrong. Please try again.');
+    }
+    if (!body?.access_token) {
+      throw new Error(serverMessage ?? 'Something went wrong. Please try again.');
+    }
     setStoredJwt(body.access_token);
     const u = userFromJwt(body.access_token);
     if (u) setUser(u);

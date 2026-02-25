@@ -11,6 +11,7 @@ export interface Database {
           avatar_url: string | null;
           daily_message_limit: number;
           last_seen_at: string | null;
+          fcm_token: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -29,6 +30,7 @@ export interface Database {
           display_name?: string | null;
           avatar_url?: string | null;
           daily_message_limit?: number;
+          fcm_token?: string | null;
           created_at?: string;
           updated_at?: string;
         };

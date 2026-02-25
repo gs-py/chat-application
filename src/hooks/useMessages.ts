@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { vibrateNewMessage } from '@/lib/haptics';
 import type { Message } from '@/types/database';
 
 export function useMessages(conversationId: string | null, userId: string | undefined) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const knownIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!conversationId) {
       setMessages([]);
       setLoading(false);
+      knownIdsRef.current.clear();
       return;
     }
 
+    knownIdsRef.current.clear();
     const fetch = async () => {
       const { data, error } = await supabase
         .from('messages')
@@ -20,7 +24,9 @@ export function useMessages(conversationId: string | null, userId: string | unde
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (!error) setMessages((data as Message[]) ?? []);
+      const list = (error ? [] : (data as Message[])) ?? [];
+      list.forEach((m) => knownIdsRef.current.add(m.id));
+      setMessages(list);
       setLoading(false);
     };
 
@@ -38,6 +44,7 @@ export function useMessages(conversationId: string | null, userId: string | unde
         },
         (payload) => {
           const newMsg = payload.new as Message;
+          if (userId && newMsg.sender_id !== userId) vibrateNewMessage();
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
@@ -57,7 +64,12 @@ export function useMessages(conversationId: string | null, userId: string | unde
           const fresh = data as Message[];
           setMessages((prev) => {
             const byId = new Map(prev.map((m) => [m.id, m]));
-            fresh.forEach((m) => byId.set(m.id, m));
+            fresh.forEach((m) => {
+              const isNew = !knownIdsRef.current.has(m.id);
+              if (isNew && userId && m.sender_id !== userId) vibrateNewMessage();
+              knownIdsRef.current.add(m.id);
+              byId.set(m.id, m);
+            });
             return [...byId.values()].sort(
               (a, b) =>
                 new Date(a.created_at).getTime() - new Date(b.created_at).getTime()

@@ -24,7 +24,16 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
       await signIn(username.trim(), password);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      setError(
+        msg.includes('Invalid username or password')
+          ? 'Invalid username or password. Please check and try again.'
+          : msg.includes('Username and password')
+            ? 'Please enter both username and password.'
+            : msg.includes('Something went wrong')
+              ? msg
+              : 'Something went wrong. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

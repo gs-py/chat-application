@@ -24,7 +24,14 @@ export function SignUpForm({ onSuccess, onLoginClick, signUp }: Props) {
       await signUp(username.trim(), password);
       onSuccess();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign up failed');
+      const msg = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      setError(
+        msg.includes('already taken')
+          ? msg
+          : msg.includes('Something went wrong')
+            ? msg
+            : 'Something went wrong. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

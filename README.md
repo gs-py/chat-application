@@ -30,6 +30,8 @@ This gives you: `profiles` (username + password_hash), `conversations`, `convers
 
 - **Online status:** run `supabase/add_last_seen.sql` to add `last_seen_at`, the `update_last_seen` RPC, and show online indicators in the sidebar and chat header.
 
+- **Push notifications (optional):** run `supabase/add_fcm_push.sql` to add `fcm_token` to profiles. Then configure Firebase and the `send-push` Edge Function (see Push notifications below).
+
 ### 3. Login Edge Function and secret
 
 Login uses a Supabase Edge Function that checks username/password and returns a JWT.
@@ -85,9 +87,42 @@ If Supabase API logs show **401** for `/rest/v1/profiles`, `/rest/v1/rpc/list_pr
 
 Note: After changing the legacy secret, Supabase may show new anon/service_role keys. If the app stops working, copy the new **anon (public)** key from Project Settings → API into your `.env` as `VITE_SUPABASE_ANON_KEY`.
 
+## Push notifications (optional)
+
+To receive push notifications and vibration/haptics when a new message arrives:
+
+1. **Firebase project** – Create a project in [Firebase Console](https://console.firebase.google.com), enable Cloud Messaging, and add a Web app. Copy the config and VAPID key.
+
+2. **Environment** – Add to `.env`:
+   ```
+   VITE_FIREBASE_API_KEY=...
+   VITE_FIREBASE_AUTH_DOMAIN=...
+   VITE_FIREBASE_PROJECT_ID=...
+   VITE_FIREBASE_STORAGE_BUCKET=...
+   VITE_FIREBASE_MESSAGING_SENDER_ID=...
+   VITE_FIREBASE_APP_ID=...
+   VITE_FIREBASE_VAPID_KEY=...
+   ```
+
+3. **Database** – Run `supabase/add_fcm_push.sql` to add `fcm_token` to `profiles`.
+
+4. **Service worker** – Run `npm run generate-firebase-sw` (or `npm run dev` / `npm run build` which run it automatically).
+
+5. **Edge Function** – Create a service account in Firebase, download the JSON, then:
+   ```bash
+   supabase secrets set FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
+   supabase functions deploy send-push
+   ```
+
+6. **Database Webhook** – In Supabase Dashboard → Database → Webhooks, create a webhook: on `messages` INSERT, POST to the `send-push` Edge Function.
+
+7. In the app, tap the bell icon to enable notifications. New messages trigger vibration (where supported) and push notifications when the app is in the background.
+
 ## Features
 
 - **Username + password only:** Stored in the `profiles` table (password hashed with bcrypt in DB). No email, no Supabase Auth, no OAuth.
 - **1:1 chat:** One conversation; the second user joins the first user’s conversation.
 - **Daily message limit:** Enforced in the DB (default 100 per user). Shown in the header; send is disabled when at limit.
 - **Realtime:** New messages appear without refresh.
+- **Vibration and haptics:** Device vibrates when a new message arrives from another user (Android; limited on iOS).
+- **Push notifications:** Firebase Cloud Messaging for alerts when the app is in the background (optional).

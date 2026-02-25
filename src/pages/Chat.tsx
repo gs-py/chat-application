@@ -14,15 +14,20 @@ import { useMessages } from '@/hooks/useMessages';
 import { useDailyLimit } from '@/hooks/useDailyLimit';
 import { useProfiles, type PublicProfile, isOnline, formatLastSeen } from '@/hooks/useProfiles';
 import { usePresence } from '@/hooks/usePresence';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { cn } from '@/lib/utils';
 import {
   MessageCircle,
   LogOut,
   User,
   Users,
+  Bell,
   ChevronRight,
   ArrowLeft,
+  Images,
+  X,
 } from 'lucide-react';
+import { LoveQuotesPanel } from '@/components/auth/LoveQuotesPanel';
 import type { Message } from '@/types/database';
 
 type CurrentProfile = {
@@ -54,18 +59,29 @@ export function Chat() {
   const [currentProfile, setCurrentProfile] =
     useState<CurrentProfile | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [showQuotesModal, setShowQuotesModal] = useState(false);
 
   useEffect(() => {
     setReplyingTo(null);
   }, [conversationId]);
 
   usePresence(user?.id, refetchProfiles);
+  const {
+    permission,
+    requestPermission,
+    registerToken,
+    isConfigured: pushConfigured,
+  } = usePushNotifications(user?.id);
 
   useEffect(() => {
     if (!authLoading && !user) {
       navigate('/login', { replace: true });
     }
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    if (user && pushConfigured && permission === 'granted') registerToken();
+  }, [user?.id, pushConfigured, permission, registerToken]);
 
   useEffect(() => {
     if (!user) return;
@@ -193,6 +209,31 @@ export function Chat() {
 
           {/* Right action icons */}
           <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowQuotesModal(true)}
+              className="rounded-xl size-9 md:size-auto md:px-3 md:py-2"
+              style={{ color: 'var(--chat-text-secondary)' }}
+              aria-label="View images & quotes"
+              title="View images & quotes"
+            >
+              <Images className="size-4 md:mr-1.5" />
+              <span className="hidden md:inline text-[13px]">View</span>
+            </Button>
+            {pushConfigured && permission !== 'granted' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={requestPermission}
+                className="rounded-xl size-9 md:size-auto md:px-3 md:py-2"
+                style={{ color: 'var(--chat-text-secondary)' }}
+                aria-label="Enable notifications"
+                title="Enable notifications"
+              >
+                <Bell className="size-4 md:mr-1.5" />
+              </Button>
+            )}
             <DailyLimitBadge used={used} limit={limit} loading={limitLoading} />
             <Button
               variant="ghost"
@@ -209,6 +250,42 @@ export function Chat() {
         </div>
       }
     >
+      {/* Quotes / images modal */}
+      {showQuotesModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowQuotesModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Images and quotes"
+        >
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between shrink-0 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
+              <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                Images & quotes
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowQuotesModal(false)}
+                className="size-9 rounded-xl"
+                aria-label="Close"
+              >
+                <X className="size-5" />
+              </Button>
+            </div>
+            <div className="flex-1 min-h-0 overflow-hidden p-4">
+              <div className="h-[400px] min-h-0 rounded-xl overflow-hidden">
+                <LoveQuotesPanel />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Sidebar */}
         <aside
