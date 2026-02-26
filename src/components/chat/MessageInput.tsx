@@ -349,14 +349,15 @@ export function MessageInput({
             style={{ color: 'var(--chat-text-primary)', maxHeight: '120px' }}
           />
 
-          {/* Emoji */}
+          {/* Emoji — focus input to open keyboard (mobile: user can switch to emoji; web: ready to type) */}
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className="shrink-0 size-9 rounded-full hover:bg-black/5"
             disabled={disabled}
-            aria-label="Emoji"
+            aria-label="Open emoji keyboard"
+            onClick={() => textareaRef.current?.focus()}
           >
             <Smile className="size-[18px]" style={{ color: 'var(--chat-text-muted)' }} />
           </Button>

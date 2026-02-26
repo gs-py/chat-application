@@ -34,6 +34,37 @@ function formatTime(iso: string) {
 
 const REPLY_SNIPPET_MAX = 80;
 
+/** Matches http/https URLs; trailing punctuation is trimmed when linking */
+const URL_REGEX = /https?:\/\/[^\s]+/g;
+
+type TextPart = { type: 'text'; value: string };
+type LinkPart = { type: 'link'; url: string };
+type ContentPart = TextPart | LinkPart;
+
+function linkify(text: string): ContentPart[] {
+  const parts: ContentPart[] = [];
+  let lastIndex = 0;
+  let match;
+  URL_REGEX.lastIndex = 0;
+  while ((match = URL_REGEX.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: 'text', value: text.slice(lastIndex, match.index) });
+    }
+    const raw = match[0];
+    const url = raw.replace(/[.,;:!?)]+$/, '');
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      parts.push({ type: 'link', url });
+    } else {
+      parts.push({ type: 'text', value: raw });
+    }
+    lastIndex = match.index + raw.length;
+  }
+  if (lastIndex < text.length) {
+    parts.push({ type: 'text', value: text.slice(lastIndex) });
+  }
+  return parts.length ? parts : [{ type: 'text', value: text }];
+}
+
 export function MessageItem({
   message,
   profile,
@@ -142,10 +173,28 @@ export function MessageItem({
             </a>
           )}
 
-          {/* Message text */}
+          {/* Message text (links open in new tab) */}
           {message.content ? (
             <p className="whitespace-pre-wrap break-words">
-              {message.content}
+              {linkify(message.content).map((part, i) =>
+                part.type === 'link' ? (
+                  <a
+                    key={i}
+                    href={part.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium focus:outline-none focus:ring-2 rounded px-0.5"
+                    style={{
+                      color: isOwn ? 'rgba(255,255,255,0.95)' : 'var(--chat-accent)',
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {part.url}
+                  </a>
+                ) : (
+                  <span key={i}>{part.value}</span>
+                )
+              )}
             </p>
           ) : null}
 

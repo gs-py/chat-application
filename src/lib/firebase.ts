@@ -16,6 +16,10 @@ export function isFirebaseConfigured(): boolean {
   return !!(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.messagingSenderId && firebaseConfig.appId);
 }
 
+export function getFirebaseConfig() {
+  return { ...firebaseConfig };
+}
+
 const app = initializeApp(firebaseConfig);
 let analyticsInstance: ReturnType<typeof getAnalytics> | null = null;
 

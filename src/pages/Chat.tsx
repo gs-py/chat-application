@@ -116,6 +116,8 @@ export function Chat() {
       const msg = err instanceof Error ? err.message : 'Failed to send';
       if (msg.includes('Daily message limit')) {
         toast.error('Daily message limit reached. Try again tomorrow.');
+      } else if (/failed to fetch|networkerror|load failed|aborted|timeout/i.test(msg)) {
+        toast.error('Connection timed out. Check your network and try again.');
       } else {
         toast.error(msg);
       }
@@ -281,7 +283,7 @@ export function Chat() {
                 <LoveQuotesPanel />
               </div>
             </div>
-            <div className="shrink-0 flex justify-end px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
+            <div className="shrink-0 flex flex-wrap items-center justify-end gap-2 px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
               <Button
                 variant="ghost"
                 size="sm"
