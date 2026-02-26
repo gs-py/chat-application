@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -23,9 +23,12 @@ import {
   Users,
   Bell,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   ArrowLeft,
   Images,
   X,
+  Search,
 } from 'lucide-react';
 import { LoveQuotesPanel } from '@/components/auth/LoveQuotesPanel';
 import type { Message } from '@/types/database';
@@ -61,10 +64,52 @@ export function Chat() {
     useState<CurrentProfile | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showQuotesModal, setShowQuotesModal] = useState(false);
+  const [sidebarSearch, setSidebarSearch] = useState('');
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [messageSearch, setMessageSearch] = useState('');
+  const [messageSearchIndex, setMessageSearchIndex] = useState(0);
+  const messageSearchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setReplyingTo(null);
+    setShowMessageSearch(false);
+    setMessageSearch('');
+    setMessageSearchIndex(0);
   }, [conversationId]);
+
+  const filteredProfiles = useMemo(() => {
+    if (!sidebarSearch.trim()) return profiles;
+    const q = sidebarSearch.toLowerCase().trim();
+    return profiles.filter(
+      (p) =>
+        (p.display_name ?? '').toLowerCase().includes(q) ||
+        p.username.toLowerCase().includes(q)
+    );
+  }, [profiles, sidebarSearch]);
+
+  const messageSearchResults = useMemo(() => {
+    if (!messageSearch.trim()) return [] as number[];
+    const q = messageSearch.toLowerCase().trim();
+    return messages.reduce<number[]>((acc, msg, i) => {
+      if (msg.content.toLowerCase().includes(q)) acc.push(i);
+      return acc;
+    }, []);
+  }, [messages, messageSearch]);
+
+  const highlightedMessageId = messageSearchResults.length > 0
+    ? messages[messageSearchResults[messageSearchIndex]]?.id ?? null
+    : null;
+
+  const toggleMessageSearch = useCallback(() => {
+    setShowMessageSearch((prev) => {
+      if (!prev) setTimeout(() => messageSearchInputRef.current?.focus(), 50);
+      else {
+        setMessageSearch('');
+        setMessageSearchIndex(0);
+      }
+      return !prev;
+    });
+  }, []);
 
   usePresence(user?.id, refetchProfiles);
   const {
@@ -221,6 +266,19 @@ export function Chat() {
 
           {/* Right action icons */}
           <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            {selectedOtherUserId && conversationId && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleMessageSearch}
+                className="rounded-xl size-9"
+                style={{ color: showMessageSearch ? 'var(--chat-accent)' : 'var(--chat-text-secondary)' }}
+                aria-label="Search messages"
+                title="Search messages"
+              >
+                <Search className="size-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -361,12 +419,42 @@ export function Chat() {
           {/* Contact list */}
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <p
-              className="text-[11px] font-semibold uppercase tracking-widest px-4 py-3 flex items-center gap-2 shrink-0"
+              className="text-[11px] font-semibold uppercase tracking-widest px-4 pt-3 pb-2 flex items-center gap-2 shrink-0"
               style={{ color: 'var(--chat-text-muted)' }}
             >
               <Users className="size-3" />
               Conversations
             </p>
+            <div className="px-3 pb-2 shrink-0">
+              <div className="relative">
+                <Search
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 pointer-events-none"
+                  style={{ color: 'var(--chat-text-muted)' }}
+                />
+                <input
+                  type="text"
+                  value={sidebarSearch}
+                  onChange={(e) => setSidebarSearch(e.target.value)}
+                  placeholder="Search people…"
+                  className="w-full rounded-xl py-2 pl-8 pr-8 text-[13px] outline-none placeholder:text-[var(--chat-text-muted)]"
+                  style={{
+                    backgroundColor: 'var(--chat-surface)',
+                    color: 'var(--chat-text-primary)',
+                    border: '1px solid var(--chat-border)',
+                  }}
+                />
+                {sidebarSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setSidebarSearch('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5"
+                    style={{ color: 'var(--chat-text-muted)' }}
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scroll-touch px-2">
               {profilesLoading ? (
                 <div className="px-3 py-3 flex items-center gap-3" style={{ color: 'var(--chat-text-muted)' }}>
@@ -376,13 +464,13 @@ export function Chat() {
                   />
                   <span className="text-sm">Loading…</span>
                 </div>
-              ) : profiles.length === 0 ? (
+              ) : filteredProfiles.length === 0 ? (
                 <p className="text-sm px-3 py-3" style={{ color: 'var(--chat-text-muted)' }}>
-                  No other users yet
+                  {sidebarSearch ? 'No matches found' : 'No other users yet'}
                 </p>
               ) : (
                 <ul className="py-1 space-y-0.5">
-                  {profiles.map((p) => (
+                  {filteredProfiles.map((p) => (
                     <UserRow
                       key={p.id}
                       profile={p}
@@ -438,6 +526,90 @@ export function Chat() {
                     aria-hidden
                   />
                   <div className="relative z-10 flex-1 min-h-0 flex flex-col min-w-0">
+                  {/* Message search bar */}
+                  {showMessageSearch && (
+                    <div
+                      className="shrink-0 flex items-center gap-2 px-3 py-2 animate-in slide-in-from-top-2 duration-200"
+                      style={{
+                        backgroundColor: 'var(--chat-surface)',
+                        borderBottom: '1px solid var(--chat-border)',
+                      }}
+                    >
+                      <Search className="size-4 shrink-0" style={{ color: 'var(--chat-text-muted)' }} />
+                      <input
+                        ref={messageSearchInputRef}
+                        type="text"
+                        value={messageSearch}
+                        onChange={(e) => {
+                          setMessageSearch(e.target.value);
+                          setMessageSearchIndex(0);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && messageSearchResults.length > 0) {
+                            e.preventDefault();
+                            setMessageSearchIndex((prev) =>
+                              e.shiftKey
+                                ? (prev - 1 + messageSearchResults.length) % messageSearchResults.length
+                                : (prev + 1) % messageSearchResults.length
+                            );
+                          }
+                          if (e.key === 'Escape') toggleMessageSearch();
+                        }}
+                        placeholder="Search in conversation…"
+                        className="flex-1 min-w-0 bg-transparent text-[13px] outline-none placeholder:text-[var(--chat-text-muted)]"
+                        style={{ color: 'var(--chat-text-primary)' }}
+                      />
+                      {messageSearch && (
+                        <span className="text-[12px] shrink-0 tabular-nums" style={{ color: 'var(--chat-text-muted)' }}>
+                          {messageSearchResults.length > 0
+                            ? `${messageSearchIndex + 1}/${messageSearchResults.length}`
+                            : '0 results'}
+                        </span>
+                      )}
+                      {messageSearchResults.length > 1 && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 rounded-lg"
+                            style={{ color: 'var(--chat-text-secondary)' }}
+                            onClick={() =>
+                              setMessageSearchIndex((prev) =>
+                                (prev - 1 + messageSearchResults.length) % messageSearchResults.length
+                              )
+                            }
+                            aria-label="Previous result"
+                          >
+                            <ChevronUp className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 rounded-lg"
+                            style={{ color: 'var(--chat-text-secondary)' }}
+                            onClick={() =>
+                              setMessageSearchIndex((prev) =>
+                                (prev + 1) % messageSearchResults.length
+                              )
+                            }
+                            aria-label="Next result"
+                          >
+                            <ChevronDown className="size-4" />
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-7 rounded-lg"
+                        style={{ color: 'var(--chat-text-muted)' }}
+                        onClick={toggleMessageSearch}
+                        aria-label="Close search"
+                      >
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                  )}
                   <MessageList
                     messages={messages}
                     currentUserId={user.id}
@@ -445,6 +617,8 @@ export function Chat() {
                     otherProfile={otherProfile ?? null}
                     loading={messagesLoading}
                     onReply={setReplyingTo}
+                    highlightedMessageId={highlightedMessageId}
+                    searchQuery={messageSearch}
                   />
                   <MessageInput
                     onSend={handleSend}

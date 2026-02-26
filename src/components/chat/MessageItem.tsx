@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import type { Message } from '@/types/database';
 import { Reply } from 'lucide-react';
@@ -22,6 +23,8 @@ type Props = {
   showName?: boolean;
   animationDelay?: number;
   onReply?: (message: Message) => void;
+  highlighted?: boolean;
+  searchQuery?: string;
 };
 
 function formatTime(iso: string) {
@@ -65,6 +68,20 @@ function linkify(text: string): ContentPart[] {
   return parts.length ? parts : [{ type: 'text', value: text }];
 }
 
+function highlightText(text: string, query: string | undefined): ReactNode {
+  if (!query?.trim()) return text;
+  const q = query.trim();
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-yellow-300/80 text-inherit rounded-sm px-0.5">{text.slice(idx, idx + q.length)}</mark>
+      {highlightText(text.slice(idx + q.length), query)}
+    </>
+  );
+}
+
 export function MessageItem({
   message,
   profile,
@@ -73,6 +90,8 @@ export function MessageItem({
   showName = true,
   animationDelay = 0,
   onReply,
+  highlighted,
+  searchQuery,
 }: Props) {
   const name = isOwn
     ? (profile?.display_name ?? profile?.username ?? 'You')
@@ -85,12 +104,14 @@ export function MessageItem({
 
   return (
     <div
+      id={`msg-${message.id}`}
       className={cn(
-        'flex px-4 sm:px-5',
+        'flex px-4 sm:px-5 transition-colors duration-300',
         isOwn ? 'justify-end' : 'justify-start',
         showName ? 'pt-3' : 'pt-[2px]',
         'animate-msg-in',
-        onReply && 'cursor-pointer group/msg'
+        onReply && 'cursor-pointer group/msg',
+        highlighted && 'bg-yellow-200/30 dark:bg-yellow-500/15'
       )}
       style={{ animationDelay: `${animationDelay}ms` }}
       onClick={() => onReply?.(message)}
@@ -189,10 +210,10 @@ export function MessageItem({
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {part.url}
+                    {searchQuery ? highlightText(part.url, searchQuery) : part.url}
                   </a>
                 ) : (
-                  <span key={i}>{part.value}</span>
+                  <span key={i}>{searchQuery ? highlightText(part.value, searchQuery) : part.value}</span>
                 )
               )}
             </p>

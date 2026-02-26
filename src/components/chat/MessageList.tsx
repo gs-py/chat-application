@@ -10,6 +10,8 @@ type Props = {
   otherProfile: MessageSenderProfile | null;
   loading: boolean;
   onReply?: (message: Message) => void;
+  highlightedMessageId?: string | null;
+  searchQuery?: string;
 };
 
 function formatDateLabel(iso: string): string {
@@ -42,6 +44,8 @@ export function MessageList({
   otherProfile,
   loading,
   onReply,
+  highlightedMessageId,
+  searchQuery,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -78,6 +82,13 @@ export function MessageList({
     }
     prevMessageCountRef.current = messages.length;
   }, [messages]);
+
+  // Scroll to highlighted search result
+  useEffect(() => {
+    if (!highlightedMessageId) return;
+    const el = document.getElementById(`msg-${highlightedMessageId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [highlightedMessageId]);
 
   if (loading) {
     return (
@@ -142,6 +153,8 @@ export function MessageList({
               showName={showAvatarAndName(idx)}
               animationDelay={idx >= messages.length - 4 ? (messages.length - 1 - idx) * 40 : 0}
               onReply={onReply}
+              highlighted={msg.id === highlightedMessageId}
+              searchQuery={searchQuery}
             />
           </div>
         ))}
