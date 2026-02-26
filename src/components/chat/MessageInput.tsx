@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send, X, Camera, ImageIcon, Smile, Paperclip } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Message } from '@/types/database';
 import {
   uploadChatImage,
@@ -208,7 +209,7 @@ export function MessageInput({
             type="button"
             variant="ghost"
             size="icon"
-            className="shrink-0 size-8 rounded-full mr-2 hover:bg-black/5"
+            className="shrink-0 size-8 rounded-full mr-2 hover:bg-white/5"
             onClick={onClearReply}
             aria-label="Cancel reply"
           >
@@ -247,7 +248,7 @@ export function MessageInput({
 
       {/* Error */}
       {imageError && (
-        <div className="mx-3 sm:mx-4 mt-2 px-3 py-2 bg-red-50 text-red-700 text-sm rounded-xl">
+        <div className="mx-3 sm:mx-4 mt-2 px-3 py-2 text-sm rounded-xl" style={{ backgroundColor: 'rgba(239,68,68,0.08)', color: '#fca5a5' }}>
           {imageError}
         </div>
       )}
@@ -267,10 +268,12 @@ export function MessageInput({
 
         {/* Input field container */}
         <div
-          className="flex-1 flex items-end rounded-[24px] px-1.5 py-1 min-h-[46px]"
+          className="flex-1 flex items-end rounded-[24px] px-1.5 py-1 min-h-[46px] transition-all duration-200"
           style={{
             backgroundColor: 'var(--chat-input-bg)',
             border: '1px solid var(--chat-border)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
           }}
         >
           {/* Attachment */}
@@ -279,7 +282,7 @@ export function MessageInput({
               type="button"
               variant="ghost"
               size="icon"
-              className="size-9 rounded-full hover:bg-black/5"
+              className="size-9 rounded-full hover:bg-white/5"
               onClick={() => setShowImageMenu((v) => !v)}
               disabled={disabled || !conversationId}
               aria-label="Attach image or take photo"
@@ -304,7 +307,7 @@ export function MessageInput({
                 >
                   <button
                     type="button"
-                    className="flex items-center gap-3 px-4 py-2.5 text-left text-[13px] rounded-xl mx-1.5 transition-colors hover:bg-black/5"
+                    className="flex items-center gap-3 px-4 py-2.5 text-left text-[13px] rounded-xl mx-1.5 transition-colors hover:bg-white/5"
                     style={{ color: 'var(--chat-text-primary)' }}
                     onClick={() => {
                       startCamera();
@@ -316,7 +319,7 @@ export function MessageInput({
                   </button>
                   <button
                     type="button"
-                    className="flex items-center gap-3 px-4 py-2.5 text-left text-[13px] rounded-xl mx-1.5 transition-colors hover:bg-black/5"
+                    className="flex items-center gap-3 px-4 py-2.5 text-left text-[13px] rounded-xl mx-1.5 transition-colors hover:bg-white/5"
                     style={{ color: 'var(--chat-text-primary)' }}
                     onClick={() => {
                       fileInputRef.current?.click();
@@ -354,7 +357,7 @@ export function MessageInput({
             type="button"
             variant="ghost"
             size="icon"
-            className="shrink-0 size-9 rounded-full hover:bg-black/5"
+            className="shrink-0 size-9 rounded-full hover:bg-white/5"
             disabled={disabled}
             aria-label="Open emoji keyboard"
             onClick={() => textareaRef.current?.focus()}
@@ -367,10 +370,12 @@ export function MessageInput({
         <Button
           type="submit"
           disabled={!canSend}
-          className="shrink-0 size-[46px] min-w-[46px] rounded-full text-white touch-manipulation transition-all duration-200 animate-send-press disabled:opacity-30"
-          style={{
-            backgroundColor: canSend ? 'var(--chat-accent)' : 'var(--chat-text-muted)',
-            boxShadow: canSend ? '0 2px 8px rgba(249, 115, 22, 0.35)' : 'none',
+          className={cn(
+            'shrink-0 size-[46px] min-w-[46px] rounded-full text-white touch-manipulation animate-send-press',
+            canSend ? 'send-btn-gradient' : 'disabled:opacity-30'
+          )}
+          style={canSend ? undefined : {
+            backgroundColor: 'rgba(255,255,255,0.06)',
           }}
         >
           <Send className="size-[18px]" strokeWidth={2.2} />

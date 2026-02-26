@@ -11,10 +11,10 @@ export function Topbar({ children }: Props) {
       style={{
         paddingTop: 'max(0.75rem, env(safe-area-inset-top))',
         backgroundColor: 'var(--chat-header-bg)',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)',
+        boxShadow: '0 4px 24px rgba(0, 0, 0, 0.3)',
         borderBottom: '1px solid var(--chat-border)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
       }}
     >
       <div

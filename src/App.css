@@ -120,6 +120,7 @@
     }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Sora', sans-serif;
     }
 }
 
@@ -137,80 +138,50 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── Modern Chat Design Tokens ── */
-:root {
-  --chat-accent: #f97316;
-  --chat-accent-hover: #ea580c;
-  --chat-accent-light: rgba(249, 115, 22, 0.08);
-  --chat-bubble-out: #f97316;
-  --chat-bubble-out-text: #ffffff;
-  --chat-bubble-in: #f4f4f5;
-  --chat-bubble-in-text: #18181b;
-  --chat-surface: #ffffff;
-  --chat-surface-secondary: #fafafa;
-  --chat-surface-tertiary: #f4f4f5;
-  --chat-border: #e4e4e7;
-  --chat-text-primary: #18181b;
-  --chat-text-secondary: #71717a;
-  --chat-text-muted: #a1a1aa;
+/* ── Futuristic Dark Chat Design Tokens ── */
+:root, .dark {
+  --chat-accent: #3b82f6;
+  --chat-accent-hover: #60a5fa;
+  --chat-accent-light: rgba(59, 130, 246, 0.10);
+  --chat-accent-secondary: #8b5cf6;
+  --chat-bubble-out: rgba(59, 130, 246, 0.12);
+  --chat-bubble-out-border: rgba(59, 130, 246, 0.22);
+  --chat-bubble-out-text: #e2e8f0;
+  --chat-bubble-out-glow: 0 0 20px rgba(59, 130, 246, 0.12), 0 2px 8px rgba(0,0,0,0.3);
+  --chat-bubble-in: rgba(255, 255, 255, 0.04);
+  --chat-bubble-in-border: rgba(255, 255, 255, 0.08);
+  --chat-bubble-in-text: #e2e8f0;
+  --chat-bubble-in-glow: 0 0 15px rgba(6, 182, 212, 0.06), 0 2px 8px rgba(0,0,0,0.2);
+  --chat-surface: #0a0a0f;
+  --chat-surface-secondary: #0d0d14;
+  --chat-surface-tertiary: rgba(255, 255, 255, 0.04);
+  --chat-border: rgba(255, 255, 255, 0.08);
+  --chat-border-focus: rgba(59, 130, 246, 0.40);
+  --chat-text-primary: #e2e8f0;
+  --chat-text-secondary: #94a3b8;
+  --chat-text-muted: #475569;
   --chat-online: #22c55e;
-  --chat-header-bg: #ffffff;
-  --chat-sidebar-bg: #fafafa;
-  --chat-input-bg: #f4f4f5;
-  --chat-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-  --chat-shadow-md: 0 2px 8px rgba(0,0,0,0.06);
-  --chat-shadow-bubble: 0 1px 3px rgba(0,0,0,0.06);
-  --chat-header-gradient: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-  --chat-divider: rgba(0, 0, 0, 0.04);
-}
-
-.dark {
-  --chat-accent: #f97316;
-  --chat-accent-hover: #fb923c;
-  --chat-accent-light: rgba(249, 115, 22, 0.12);
-  --chat-bubble-out: #f97316;
-  --chat-bubble-out-text: #ffffff;
-  --chat-bubble-in: #27272a;
-  --chat-bubble-in-text: #fafafa;
-  --chat-surface: #18181b;
-  --chat-surface-secondary: #1f1f23;
-  --chat-surface-tertiary: #27272a;
-  --chat-border: #3f3f46;
-  --chat-text-primary: #fafafa;
-  --chat-text-secondary: #a1a1aa;
-  --chat-text-muted: #71717a;
-  --chat-online: #22c55e;
-  --chat-header-bg: #18181b;
-  --chat-sidebar-bg: #1f1f23;
-  --chat-input-bg: #27272a;
-  --chat-shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
-  --chat-shadow-md: 0 2px 8px rgba(0,0,0,0.3);
-  --chat-shadow-bubble: 0 1px 3px rgba(0,0,0,0.2);
-  --chat-header-gradient: linear-gradient(135deg, #18181b 0%, #1f1f23 100%);
-  --chat-divider: rgba(255, 255, 255, 0.05);
+  --chat-header-bg: rgba(10, 10, 15, 0.80);
+  --chat-sidebar-bg: rgba(10, 10, 15, 0.60);
+  --chat-input-bg: rgba(255, 255, 255, 0.05);
+  --chat-shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --chat-shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --chat-shadow-bubble: none;
+  --chat-header-gradient: linear-gradient(135deg, rgba(10,10,15,0.9) 0%, rgba(13,13,20,0.9) 100%);
+  --chat-divider: rgba(255, 255, 255, 0.04);
+  --chat-send-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  --chat-send-glow: 0 0 20px rgba(59, 130, 246, 0.35), 0 0 40px rgba(139, 92, 246, 0.15);
 }
 
 /* ── Keyframe Animations ── */
 @keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes sendScale {
@@ -219,8 +190,18 @@
   100% { transform: scale(1); }
 }
 
+@keyframes ambientPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: var(--chat-bubble-out-glow); }
+  50% { box-shadow: 0 0 28px rgba(59, 130, 246, 0.18), 0 2px 12px rgba(0,0,0,0.35); }
+}
+
 .animate-msg-in {
-  animation: fadeSlideUp 0.2s ease-out both;
+  animation: fadeSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-reply-slide {
@@ -231,6 +212,67 @@
   animation: sendScale 0.12s ease-out;
 }
 
+/* ── Dot Grid Texture Overlay ── */
+.chat-dot-grid {
+  position: relative;
+}
+
+.chat-dot-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Ambient Glow Overlays ── */
+.chat-ambient-glow {
+  position: relative;
+}
+
+.chat-ambient-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 10% 10%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 90%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: ambientPulse 8s ease-in-out infinite;
+}
+
+/* ── Frosted Glass Bubble Styles ── */
+.bubble-glass-out {
+  background: var(--chat-bubble-out);
+  border: 1px solid var(--chat-bubble-out-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--chat-bubble-out-glow);
+  color: var(--chat-bubble-out-text);
+}
+
+.bubble-glass-out:hover {
+  box-shadow: 0 0 18px rgba(249, 115, 22, 0.15), 0 0 6px rgba(249, 115, 22, 0.08), 0 2px 8px rgba(0,0,0,0.3);
+  border-color: rgba(249, 115, 22, 0.18);
+}
+
+.bubble-glass-in {
+  background: var(--chat-bubble-in);
+  border: 1px solid var(--chat-bubble-in-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--chat-bubble-in-glow);
+  color: var(--chat-bubble-in-text);
+}
+
+.bubble-glass-in:hover {
+  box-shadow: 0 0 18px rgba(249, 115, 22, 0.12), 0 0 6px rgba(249, 115, 22, 0.06), 0 2px 8px rgba(0,0,0,0.2);
+  border-color: rgba(249, 115, 22, 0.15);
+}
+
 /* Date separator pill */
 .chat-date-pill {
   display: inline-flex;
@@ -238,14 +280,34 @@
   border-radius: 100px;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  background: var(--chat-surface);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--chat-text-secondary);
-  box-shadow: var(--chat-shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* Professional Topbar Styles */
+/* ── Send Button Gradient ── */
+.send-btn-gradient {
+  background: var(--chat-send-gradient);
+  box-shadow: var(--chat-send-glow);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.send-btn-gradient:hover:not(:disabled) {
+  box-shadow: 0 0 28px rgba(59, 130, 246, 0.45), 0 0 50px rgba(139, 92, 246, 0.2);
+}
+
+.send-btn-gradient:disabled {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  opacity: 0.4;
+}
+
+/* ── Topbar Styles ── */
 header {
   position: relative;
   z-index: 30;
@@ -261,14 +323,13 @@ header::after {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    var(--chat-border) 20%,
-    var(--chat-border) 80%,
+    rgba(59, 130, 246, 0.2) 30%,
+    rgba(139, 92, 246, 0.2) 70%,
     transparent 100%
   );
-  opacity: 0.5;
 }
 
-/* Topbar button refinements */
+/* Button refinements */
 button {
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -279,4 +340,22 @@ button:hover:not(:disabled) {
 
 button:active:not(:disabled) {
   transform: translateY(0);
+}
+
+/* ── Scrollbar for dark theme ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
 }

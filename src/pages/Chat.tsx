@@ -319,11 +319,12 @@ export function Chat() {
           aria-label="Images and quotes"
         >
           <div
-            className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-2xl"
+            className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl"
+            style={{ backgroundColor: 'rgba(10, 10, 15, 0.95)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(20px)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between shrink-0 px-4 py-3 border-b border-zinc-200 dark:border-zinc-700">
-              <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
+            <div className="flex items-center justify-between shrink-0 px-4 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+              <h2 className="font-semibold" style={{ color: '#e2e8f0' }}>
                 Images & quotes
               </h2>
               <Button
@@ -341,7 +342,7 @@ export function Chat() {
                 <LoveQuotesPanel />
               </div>
             </div>
-            <div className="shrink-0 flex flex-wrap items-center justify-end gap-2 px-4 py-3 border-t border-zinc-200 dark:border-zinc-700">
+            <div className="shrink-0 flex flex-wrap items-center justify-end gap-2 px-4 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -349,7 +350,8 @@ export function Chat() {
                   setShowQuotesModal(false);
                   signOut().then(() => navigate('/login'));
                 }}
-                className="rounded-xl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                className="rounded-xl"
+                style={{ color: '#94a3b8' }}
                 aria-label="Sign out"
               >
                 <LogOut className="size-4 mr-2" />
@@ -438,7 +440,7 @@ export function Chat() {
                   placeholder="Search people…"
                   className="w-full rounded-xl py-2 pl-8 pr-8 text-[13px] outline-none placeholder:text-[var(--chat-text-muted)]"
                   style={{
-                    backgroundColor: 'var(--chat-surface)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.04)',
                     color: 'var(--chat-text-primary)',
                     border: '1px solid var(--chat-border)',
                   }}
@@ -494,14 +496,14 @@ export function Chat() {
           style={{ backgroundColor: 'var(--chat-surface-secondary)' }}
         >
           {!selectedOtherUserId ? (
-            <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6 text-center animate-in fade-in duration-300">
+            <div className="flex-1 flex flex-col items-center justify-center gap-5 px-6 text-center animate-in fade-in duration-300 chat-dot-grid chat-ambient-glow">
               <div
-                className="rounded-3xl p-7"
-                style={{ backgroundColor: 'var(--chat-accent-light)' }}
+                className="relative z-10 rounded-3xl p-7"
+                style={{ backgroundColor: 'rgba(59, 130, 246, 0.06)', border: '1px solid rgba(59, 130, 246, 0.12)' }}
               >
-                <MessageCircle className="size-14" style={{ color: 'var(--chat-accent)', opacity: 0.7 }} />
+                <MessageCircle className="size-14" style={{ color: 'var(--chat-accent)', opacity: 0.5 }} />
               </div>
-              <div>
+              <div className="relative z-10">
                 <p className="text-lg font-semibold" style={{ color: 'var(--chat-text-primary)' }}>
                   Select a conversation
                 </p>
@@ -513,18 +515,12 @@ export function Chat() {
           ) : (
             <>
               {convError && (
-                <p className="text-sm text-red-600 px-4 py-2 bg-red-50">
+                <p className="text-sm px-4 py-2" style={{ color: '#fca5a5', backgroundColor: 'rgba(239,68,68,0.08)' }}>
                   {convError.message}
                 </p>
               )}
               {conversationId && (
-                <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
-                  {/* Original background image */}
-                  <div
-                    className="absolute inset-0 z-0 bg-cover bg-center opacity-25 blur-sm dark:opacity-20 bg-no-repeat"
-                    style={{ backgroundImage: `url('/chat-bg.jpeg')` }}
-                    aria-hidden
-                  />
+                <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative chat-dot-grid chat-ambient-glow">
                   <div className="relative z-10 flex-1 min-h-0 flex flex-col min-w-0">
                   {/* Message search bar */}
                   {showMessageSearch && (
@@ -684,7 +680,7 @@ function UserRow({
           borderLeft: selected ? '3px solid var(--chat-accent)' : '3px solid transparent',
         }}
         onMouseEnter={(e) => {
-          if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--chat-surface)';
+          if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(255,255,255,0.04)';
         }}
         onMouseLeave={(e) => {
           if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent';

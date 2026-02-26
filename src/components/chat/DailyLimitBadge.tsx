@@ -20,7 +20,7 @@ export function DailyLimitBadge({ used, limit, loading }: Props) {
         "shrink-0 gap-1.5 font-medium border-0 text-[11px] px-2.5 py-1 rounded-full"
       )}
       style={{
-        backgroundColor: isAtLimit ? 'rgba(249, 115, 22, 0.12)' : 'var(--chat-surface-tertiary)',
+        backgroundColor: isAtLimit ? 'rgba(59, 130, 246, 0.12)' : 'rgba(255,255,255,0.06)',
         color: isAtLimit ? 'var(--chat-accent)' : 'var(--chat-text-secondary)',
       }}
     >

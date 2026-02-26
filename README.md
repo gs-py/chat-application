@@ -87,6 +87,37 @@ If Supabase API logs show **401** for `/rest/v1/profiles`, `/rest/v1/rpc/list_pr
 
 Note: After changing the legacy secret, Supabase may show new anon/service_role keys. If the app stops working, copy the new **anon (public)** key from Project Settings → API into your `.env` as `VITE_SUPABASE_ANON_KEY`.
 
+### Checking Supabase logs and issues
+
+Use the **Supabase Dashboard** to inspect logs and debug issues (no MCP required):
+
+1. **Log in:** [Supabase Dashboard](https://supabase.com/dashboard) → select your project.
+
+2. **API / PostgREST logs** (401s, RPC failures, table access):
+   - **Logs** (left sidebar) → **API**.
+   - Filter by time range; look for failed requests (red / 4xx). Check **path** (e.g. `/rest/v1/...`, `/rpc/list_profiles`, `/rpc/login_verify`) and **status code** (401 = auth, 403 = RLS, 500 = server error).
+
+3. **Edge Function logs** (login, send-push):
+   - **Logs** → **Edge Functions**.
+   - Select the function (e.g. `login`, `send-push`). Check **status** (success/fail), **duration**, and the **payload** / **logs** for errors (e.g. `JWT_SECRET` missing, FCM errors).
+
+4. **Database / Postgres logs:**
+   - **Logs** → **Postgres** (if available) for DB errors, slow queries, or trigger failures.
+
+5. **Common issues from logs:**
+   - **401 on `/rest/v1/*` or `/rpc/*` after login** → JWT secret mismatch (see “Troubleshooting: 401” above).
+   - **Edge Function 500** → Check **Secrets** (e.g. `JWT_SECRET`, `FIREBASE_SERVICE_ACCOUNT_JSON`) and the function’s own log output.
+   - **Timeout / “something went wrong”** → Often network (e.g. mobile data). Check browser console for `[Supabase] Request failed: timeout`; see “Works on WiFi but not on mobile data”.
+
+### Works on WiFi but not on mobile data
+
+If the app works on WiFi but Supabase requests fail on mobile (cellular) data, the **mobile carrier** may be blocking or throttling Supabase’s domain.
+
+- **Check the error:** In the browser console you’ll see `[Supabase] Network request failed: …` with the error (e.g. `Failed to fetch`, timeout). That confirms the request never reaches Supabase.
+- **Try a VPN** on the same device over mobile data; if it works, the carrier is likely blocking or restricting the connection.
+- **Deploy the app over HTTPS** (e.g. Vercel, Netlify) and test on mobile data; some carriers treat HTTPS differently.
+- There is nothing in the app code that behaves differently on WiFi vs mobile; the backend is the same. The issue is network/carrier between the device and Supabase.
+
 ## Push notifications (optional)
 
 To receive push notifications and vibration/haptics when a new message arrives:
@@ -108,7 +139,7 @@ To receive push notifications and vibration/haptics when a new message arrives:
 
 4. **Service worker** – Run `npm run generate-firebase-sw` (or `npm run dev` / `npm run build` which run it automatically).
 
-5. **Edge Function** – Create a service account in Firebase, download the JSON, then:
+5. **Edge Functions** – Create a service account in Firebase, download the JSON, then:
    ```bash
    supabase secrets set FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
    supabase functions deploy send-push
@@ -117,6 +148,34 @@ To receive push notifications and vibration/haptics when a new message arrives:
 6. **Database Webhook** – In Supabase Dashboard → Database → Webhooks, create a webhook: on `messages` INSERT, POST to the `send-push` Edge Function.
 
 7. In the app, tap the bell icon to enable notifications. New messages trigger vibration (where supported) and push notifications when the app is in the background.
+
+## Testing messages
+
+To confirm messages are sent and received:
+
+1. **Start the app:** `npm run dev` and open the URL (e.g. http://localhost:5173).
+
+2. **Two users:** In a normal window, sign up or log in as **User A**. In an incognito/private window (or another browser), sign up or log in as **User B**.
+
+3. **Open chat:** In both windows, select the other user from the conversation list so you’re in the same 1:1 chat.
+
+4. **Send a message:** From User B’s window, type a message and send. It should appear in both windows (and in User A’s window without refresh, via Realtime or polling).
+
+5. **Reply the other way:** Send a message from User A; it should show up for User B.
+
+If messages don’t appear, check the browser console for errors and ensure Supabase env vars (`.env`) and the `messages` table/RLS are set up (see Setup above).
+
+## Testing push notifications
+
+To confirm the notification module works:
+
+1. **Setup** – Complete the [Push notifications](#push-notifications-optional) steps (Firebase, `fcm_token`, `send-push` deployed, same secrets).
+
+2. **Enable in app** – Log in, tap the **bell** in the header, and allow notifications when prompted.
+
+3. **Test real message** – With two users, send a message from one; the other should get a push when the app is in the background (and vibration + toast when in the foreground).
+
+**“Push service error” or “Registration failed”:** The app must run over **HTTPS** or **localhost**. Open it at `https://your-domain.com` or `http://localhost:5173` (not `http://192.168.x.x`). In [Firebase Console](https://console.firebase.google.com) → Project settings → Cloud Messaging → **Web Push certificates**, ensure the VAPID key pair matches the one in your app (or in `.env` as `VITE_FIREBASE_VAPID_KEY`). If you generated a new key in Firebase, copy it into the app and reload.
 
 ## Features
 

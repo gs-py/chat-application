@@ -42,16 +42,21 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
   return (
     <div
       className={cn(
-        'w-full overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700/60',
-        'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-xl shadow-slate-200/50 dark:shadow-black/20',
+        'relative z-10 w-full overflow-hidden rounded-2xl',
+        'backdrop-blur-xl shadow-2xl',
         'animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both'
       )}
+      style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.04)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.4), 0 0 60px rgba(59, 130, 246, 0.05)',
+      }}
     >
       <div className="px-8 pt-10 pb-8 md:px-12 md:pt-12 md:pb-10">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-800 dark:text-slate-100 md:text-2xl">
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl" style={{ color: '#e2e8f0' }}>
           Welcome back
         </h1>
-        <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-1.5 text-sm" style={{ color: '#475569' }}>
           Sign in to continue
         </p>
 
@@ -60,10 +65,14 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
             <div
               role="alert"
               className={cn(
-                'rounded-lg border border-red-200/80 dark:border-red-900/50',
-                'bg-red-50/80 dark:bg-red-950/40 px-4 py-3 text-sm text-red-700 dark:text-red-300',
+                'rounded-lg px-4 py-3 text-sm',
                 'animate-in fade-in slide-in-from-top-1 duration-300'
               )}
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                color: '#fca5a5',
+              }}
             >
               {error}
             </div>
@@ -72,7 +81,8 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
           <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-400 fill-mode-both [animation-delay:50ms]">
             <label
               htmlFor="username"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300"
+              className="text-sm font-medium"
+              style={{ color: '#94a3b8' }}
             >
               Username
             </label>
@@ -85,18 +95,22 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
               autoComplete="username"
               required
               className={cn(
-                'h-12 md:h-11 rounded-xl border-slate-200 dark:border-slate-600',
-                'bg-slate-50/80 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100',
-                'transition-all duration-200 placeholder:text-slate-400',
-                'focus:border-slate-400 focus:ring-2 focus:ring-slate-200/50 dark:focus:ring-slate-700/50'
+                'h-12 md:h-11 rounded-xl',
+                'transition-all duration-200'
               )}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#e2e8f0',
+              }}
             />
           </div>
 
           <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-400 fill-mode-both [animation-delay:100ms]">
             <label
               htmlFor="password"
-              className="text-sm font-medium text-slate-600 dark:text-slate-300"
+              className="text-sm font-medium"
+              style={{ color: '#94a3b8' }}
             >
               Password
             </label>
@@ -109,11 +123,14 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
               autoComplete="current-password"
               required
               className={cn(
-                'h-12 md:h-11 rounded-xl border-slate-200 dark:border-slate-600',
-                'bg-slate-50/80 dark:bg-slate-800/50 text-slate-900 dark:text-slate-100',
-                'transition-all duration-200 placeholder:text-slate-400',
-                'focus:border-slate-400 focus:ring-2 focus:ring-slate-200/50 dark:focus:ring-slate-700/50'
+                'h-12 md:h-11 rounded-xl',
+                'transition-all duration-200'
               )}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                color: '#e2e8f0',
+              }}
             />
           </div>
 
@@ -122,10 +139,8 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
               type="submit"
               disabled={loading}
               className={cn(
-                'h-12 md:h-11 w-full rounded-xl font-medium',
-                'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900',
-                'hover:bg-slate-800 dark:hover:bg-slate-200',
-                'transition-all duration-200 active:scale-[0.98]'
+                'h-12 md:h-11 w-full rounded-xl font-medium text-white',
+                'transition-all duration-200 active:scale-[0.98] send-btn-gradient'
               )}
             >
               {loading ? (
@@ -135,12 +150,13 @@ export function LoginForm({ onSuccess, onSignUpClick, signIn }: Props) {
               )}
             </Button>
 
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-center text-sm" style={{ color: '#475569' }}>
               Don't have an account?{' '}
               <button
                 type="button"
                 onClick={onSignUpClick}
-                className="font-medium text-slate-700 dark:text-slate-300 underline-offset-4 hover:underline transition-colors"
+                className="font-medium underline-offset-4 hover:underline transition-colors"
+                style={{ color: '#60a5fa' }}
               >
                 Sign up
               </button>
