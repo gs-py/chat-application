@@ -248,9 +248,7 @@ export function Chat() {
                 >
                   {isOnline(headerProfile.last_seen_at ?? null)
                     ? 'Online'
-                    : headerProfile.last_seen_at
-                      ? `Last seen ${formatLastSeen(headerProfile.last_seen_at).toLowerCase()}`
-                      : 'Offline'}
+                    : `Last seen ${formatLastSeen(headerProfile.last_seen_at).toLowerCase()}`}
                 </p>
               </div>
             </div>

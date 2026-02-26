@@ -98,7 +98,7 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
-      await supabase.rpc('clear_last_seen');
+      await supabase.rpc('update_last_seen');
     } catch {
       // Ignore - JWT may already be invalid
     } finally {

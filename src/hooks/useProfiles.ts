@@ -18,7 +18,7 @@ export function isOnline(lastSeenAt: string | null): boolean {
 }
 
 export function formatLastSeen(lastSeenAt: string | null): string {
-  if (!lastSeenAt) return 'Never';
+  if (!lastSeenAt) return 'A while ago';
   const ms = Date.now() - new Date(lastSeenAt).getTime();
   if (ms < 60_000) return 'Just now';
   if (ms < ONLINE_THRESHOLD_MS) return `${Math.floor(ms / 60_000)}m ago`;
