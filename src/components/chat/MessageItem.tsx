@@ -23,6 +23,7 @@ type Props = {
   showName?: boolean;
   animationDelay?: number;
   onReply?: (message: Message) => void;
+  onScrollToMessage?: (messageId: string) => void;
   highlighted?: boolean;
   searchQuery?: string;
 };
@@ -90,6 +91,7 @@ export function MessageItem({
   showName = true,
   animationDelay = 0,
   onReply,
+  onScrollToMessage,
   highlighted,
   searchQuery,
 }: Props) {
@@ -153,10 +155,14 @@ export function MessageItem({
           {/* Reply indicator */}
           {repliedTo && (
             <div
-              className="flex gap-2 mb-2 pl-2.5 py-2 pr-3 rounded-xl border-l-[3px] -mx-1"
+              className="flex gap-2 mb-2 pl-2.5 py-2 pr-3 rounded-xl border-l-[3px] -mx-1 cursor-pointer hover:brightness-125 transition-all duration-150"
               style={{
                 borderLeftColor: isOwn ? 'rgba(96,165,250,0.6)' : 'var(--chat-accent)',
                 backgroundColor: isOwn ? 'rgba(59,130,246,0.08)' : 'rgba(255,255,255,0.04)',
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onScrollToMessage?.(repliedTo.id);
               }}
             >
               <div className="min-w-0 flex-1">

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageItem, type MessageSenderProfile, type RepliedToMessage } from './MessageItem';
 import type { Message } from '@/types/database';
 import { MessageCircle } from 'lucide-react';
@@ -50,6 +50,16 @@ export function MessageList({
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(0);
+  const [flashMessageId, setFlashMessageId] = useState<string | null>(null);
+
+  const handleScrollToMessage = useCallback((messageId: string) => {
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setFlashMessageId(messageId);
+      setTimeout(() => setFlashMessageId(null), 1500);
+    }
+  }, []);
 
   const messageById = useRef<Map<string, Message>>(new Map());
   messageById.current = new Map(messages.map((m) => [m.id, m]));
@@ -153,8 +163,9 @@ export function MessageList({
               showName={showAvatarAndName(idx)}
               animationDelay={idx >= messages.length - 4 ? (messages.length - 1 - idx) * 40 : 0}
               onReply={onReply}
-              highlighted={msg.id === highlightedMessageId}
+              highlighted={msg.id === highlightedMessageId || msg.id === flashMessageId}
               searchQuery={searchQuery}
+              onScrollToMessage={handleScrollToMessage}
             />
           </div>
         ))}
