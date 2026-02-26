@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Topbar } from './Topbar';
 
 type Props = {
   header: ReactNode;
@@ -8,17 +9,7 @@ type Props = {
 export function MainLayout({ header, children }: Props) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden" style={{ backgroundColor: 'var(--chat-surface-secondary)' }}>
-      <header
-        className="shrink-0 px-3 py-2.5 sm:px-5 sm:py-3"
-        style={{
-          paddingTop: 'max(0.625rem, env(safe-area-inset-top))',
-          backgroundColor: 'var(--chat-header-bg)',
-          boxShadow: 'var(--chat-shadow-sm)',
-          borderBottom: '1px solid var(--chat-border)',
-        }}
-      >
-        {header}
-      </header>
+      <Topbar>{header}</Topbar>
       <main className="flex-1 min-h-0 flex flex-col">{children}</main>
     </div>
   );
