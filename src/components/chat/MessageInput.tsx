@@ -348,7 +348,7 @@ export function MessageInput({
             placeholder={placeholder}
             disabled={disabled}
             rows={1}
-            className="flex-1 min-w-0 border-0 bg-transparent shadow-none px-1.5 py-2.5 text-[15px] outline-none resize-none leading-[1.4]"
+            className="flex-1 min-w-0 border-0 bg-transparent shadow-none px-1.5 py-2.5 text-[16px] outline-none resize-none leading-[1.4]"
             style={{ color: 'var(--chat-text-primary)', maxHeight: '120px' }}
           />
 

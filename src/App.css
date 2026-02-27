@@ -121,6 +121,11 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Sora', sans-serif;
+    -webkit-text-size-adjust: 100%;
+    }
+  input, textarea, select {
+    font-size: 16px !important;
+    touch-action: manipulation;
     }
 }
 

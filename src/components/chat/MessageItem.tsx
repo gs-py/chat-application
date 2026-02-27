@@ -160,8 +160,11 @@ export function MessageItem({
                 borderLeftColor: isOwn ? 'rgba(96,165,250,0.6)' : 'var(--chat-accent)',
                 backgroundColor: isOwn ? 'rgba(59,130,246,0.08)' : 'rgba(255,255,255,0.04)',
               }}
+              onPointerDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 onScrollToMessage?.(repliedTo.id);
               }}
             >
